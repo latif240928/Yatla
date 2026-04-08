@@ -1,5 +1,6 @@
 // UI/Features/CreateTask/CreateTaskView.swift
 import SwiftUI
+import UniformTypeIdentifiers
 
 /// Task doretmek popup  — '+' butronundan açylyar
 struct CreateTaskView: View {
@@ -14,7 +15,8 @@ struct CreateTaskView: View {
 
                 ScrollView {
                     VStack(spacing: 20) {
-                        // MARK: - Department saylamak
+
+                        // MARK: - Department saýlamak
                         VStack(alignment: .leading, spacing: 6) {
                             Text("Bölüm")
                                 .font(AppFonts.caption1)
@@ -80,7 +82,7 @@ struct CreateTaskView: View {
                                 )
                         }
 
-                        // MARK: - Kullanıcılar — Şahsy saylanan bolsa gizle
+                        // MARK: - Ulanyjylar — Şahsy saýlanan bolsa gizle
                         if !viewModel.isSahsy {
                             VStack(alignment: .leading, spacing: 6) {
                                 Text("Degişli adamlar")
@@ -125,10 +127,9 @@ struct CreateTaskView: View {
                             }
                         }
 
-                        // MARK: - deadline + sagat
+                        // MARK: - Sene + Sagat
                         HStack(alignment: .top) {
 
-                            // (Date)
                             VStack(alignment: .leading, spacing: 6) {
                                 Text("Tamamlanmaly senesi")
                                     .font(AppFonts.caption1)
@@ -141,12 +142,12 @@ struct CreateTaskView: View {
                                 )
                                 .datePickerStyle(.compact)
                                 .labelsHidden()
-                                .tint(AppColors.textPrimary)
+                                .tint(AppColors.primary)
+                                .colorScheme(.dark)
                             }
 
                             Spacer()
 
-                            //  (Time)
                             VStack(alignment: .trailing, spacing: 6) {
                                 Text("Wagty")
                                     .font(AppFonts.caption1)
@@ -160,7 +161,8 @@ struct CreateTaskView: View {
                                 )
                                 .datePickerStyle(.compact)
                                 .labelsHidden()
-                                .tint(AppColors.textPrimary)
+                                .tint(AppColors.primary)
+                                .colorScheme(.dark)
                                 .frame(width: 90)
                             }
                         }
@@ -173,16 +175,40 @@ struct CreateTaskView: View {
                         )
 
                         // MARK: - Faýl
-                        VStack(alignment: .leading, spacing: 6) {
+                        VStack(alignment: .leading, spacing: 8) {
                             Text("Faýl")
                                 .font(AppFonts.caption1)
                                 .foregroundColor(AppColors.textSecondary)
 
-                            Button(action: { /* File picker */ }) {
+                            // Saýlanan faýllar
+                            ForEach(viewModel.selectedFiles, id: \.self) { url in
+                                HStack(spacing: 10) {
+                                    Image(systemName: fileIcon(for: url))
+                                        .foregroundColor(AppColors.primary)
+                                        .font(.system(size: 16))
+                                    Text(url.lastPathComponent)
+                                        .font(AppFonts.caption1)
+                                        .foregroundColor(.white)
+                                        .lineLimit(1)
+                                    Spacer()
+                                    Button(action: { viewModel.removeFile(url) }) {
+                                        Image(systemName: "xmark.circle.fill")
+                                            .foregroundColor(AppColors.error)
+                                            .font(.system(size: 18))
+                                    }
+                                }
+                                .padding(10)
+                                .background(AppColors.surfaceAlt)
+                                .cornerRadius(8)
+                                .transition(.opacity.combined(with: .move(edge: .top)))
+                            }
+
+                            // Faýl goşmak butony
+                            Button(action: { viewModel.showFilePicker = true }) {
                                 HStack {
                                     Image(systemName: "paperclip")
                                         .foregroundColor(AppColors.primary)
-                                    Text("Faýl ýüklemek")
+                                    Text(viewModel.selectedFiles.isEmpty ? "Faýl ýüklemek" : "Faýl goşmak")
                                         .font(AppFonts.subheadline)
                                         .foregroundColor(AppColors.textSecondary)
                                     Spacer()
@@ -198,6 +224,7 @@ struct CreateTaskView: View {
                                 )
                             }
                         }
+                        .animation(.easeInOut(duration: 0.2), value: viewModel.selectedFiles.count)
 
                         // MARK: - Error
                         if let error = viewModel.errorMessage {
@@ -230,6 +257,7 @@ struct CreateTaskView: View {
                             )
                         }
                         .disabled(!viewModel.createTask.isValid || viewModel.isLoading)
+                        .animation(.easeInOut(duration: 0.2), value: viewModel.createTask.isValid)
                     }
                     .padding(20)
                 }
@@ -244,6 +272,7 @@ struct CreateTaskView: View {
             }
             .toolbarColorScheme(.dark, for: .navigationBar)
         }
+        // MARK: - Sheets
         .sheet(isPresented: $viewModel.showDepartmentPicker) {
             CreateTaskDepartmentPicker(viewModel: viewModel)
                 .presentationDetents([.medium])
@@ -253,6 +282,40 @@ struct CreateTaskView: View {
             UserPickerSheet(viewModel: viewModel)
                 .presentationDetents([.large])
                 .preferredColorScheme(.dark)
+        }
+        // MARK: - File Importer
+        .fileImporter(
+            isPresented: $viewModel.showFilePicker,
+            allowedContentTypes: [.item],
+            allowsMultipleSelection: true
+        ) { result in
+            switch result {
+            case .success(let urls):
+                for url in urls {
+                    let accessing = url.startAccessingSecurityScopedResource()
+                    viewModel.addFile(url)
+                    if accessing {
+                        url.stopAccessingSecurityScopedResource()
+                    }
+                }
+            case .failure(let error):
+                viewModel.errorMessage = error.localizedDescription
+            }
+        }
+    }
+
+    // MARK: - Helper: faýl görnüşine görä ikon
+    private func fileIcon(for url: URL) -> String {
+        let ext = url.pathExtension.lowercased()
+        switch ext {
+        case "pdf":                          return "doc.richtext.fill"
+        case "png", "jpg", "jpeg", "heic":  return "photo.fill"
+        case "mp4", "mov":                   return "video.fill"
+        case "mp3", "m4a", "wav":           return "waveform"
+        case "zip", "rar":                   return "archivebox.fill"
+        case "doc", "docx":                  return "doc.text.fill"
+        case "xls", "xlsx":                  return "tablecells.fill"
+        default:                             return "paperclip"
         }
     }
 }
@@ -265,7 +328,8 @@ struct CreateTaskDepartmentPicker: View {
         VStack(spacing: 0) {
             HStack {
                 Text("Bölüm saýlaň")
-                    .font(AppFonts.title3).foregroundColor(.white)
+                    .font(AppFonts.title3)
+                    .foregroundColor(.white)
                 Spacer()
             }
             .padding(20)
@@ -275,7 +339,7 @@ struct CreateTaskDepartmentPicker: View {
             ScrollView {
                 VStack(spacing: 0) {
 
-                    //  Şahsy
+                    // Şahsy
                     Button(action: {
                         viewModel.createTask.department = Department.sahsy
                         viewModel.selectedUsers = []
@@ -287,19 +351,20 @@ struct CreateTaskDepartmentPicker: View {
                                 .foregroundColor(AppColors.primary)
                                 .frame(width: 20)
                             Text("Şahsy")
-                                .font(AppFonts.body).foregroundColor(.white)
+                                .font(AppFonts.body)
+                                .foregroundColor(.white)
                             Spacer()
                             if viewModel.createTask.department?.id == "sahsy" {
                                 Image(systemName: "checkmark")
                                     .foregroundColor(AppColors.primary)
                             }
                         }
-                        .padding(.horizontal, 20).padding(.vertical, 14)
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 14)
                     }
 
                     Divider().background(AppColors.divider).padding(.horizontal, 20)
 
-                    
                     ForEach(viewModel.departments) { dept in
                         Button(action: {
                             viewModel.createTask.department = dept
@@ -307,26 +372,31 @@ struct CreateTaskDepartmentPicker: View {
                         }) {
                             HStack {
                                 Text(dept.name)
-                                    .font(AppFonts.body).foregroundColor(.white)
+                                    .font(AppFonts.body)
+                                    .foregroundColor(.white)
                                 Spacer()
                                 if viewModel.createTask.department?.id == dept.id {
                                     Image(systemName: "checkmark")
                                         .foregroundColor(AppColors.primary)
                                 }
                             }
-                            .padding(.horizontal, 20).padding(.vertical, 14)
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 14)
                         }
                         Divider().background(AppColors.divider).padding(.horizontal, 20)
                     }
                 }
             }
 
-            // Bölüm gosmak
+            // Täze bölüm goşmak
             HStack(spacing: 12) {
                 TextField("Täze bölüm...", text: $viewModel.newDepartmentName)
-                    .font(AppFonts.body).foregroundColor(.white)
-                    .padding(.horizontal, 12).padding(.vertical, 10)
-                    .background(AppColors.surfaceAlt).cornerRadius(8)
+                    .font(AppFonts.body)
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 10)
+                    .background(AppColors.surfaceAlt)
+                    .cornerRadius(8)
 
                 Button(action: { viewModel.addNewDepartment() }) {
                     Image(systemName: "plus.circle.fill")
@@ -349,9 +419,7 @@ struct UserPickerSheet: View {
     @State private var showMyUsers: Bool = true
 
     var filteredUsers: [User] {
-        if searchText.isEmpty {
-            return viewModel.allUsers
-        }
+        if searchText.isEmpty { return viewModel.allUsers }
         return viewModel.allUsers.filter {
             $0.name.localizedCaseInsensitiveContains(searchText) ||
             $0.phone.contains(searchText)
@@ -364,18 +432,18 @@ struct UserPickerSheet: View {
                 AppColors.background.ignoresSafeArea()
 
                 VStack(spacing: 0) {
-                    VStack(spacing: 12) {
-                        TextField("Ulanyjy ady...", text: $searchText)
-                            .font(AppFonts.body).foregroundColor(.white)
-                            .padding(12)
-                            .background(AppColors.surface).cornerRadius(10)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 10)
-                                    .stroke(AppColors.divider, lineWidth: 1)
-                            )
-                    }
-                    .padding(.horizontal, 20)
-                    .padding(.top, 12)
+                    TextField("Ulanyjy ady...", text: $searchText)
+                        .font(AppFonts.body)
+                        .foregroundColor(.white)
+                        .padding(12)
+                        .background(AppColors.surface)
+                        .cornerRadius(10)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 10)
+                                .stroke(AppColors.divider, lineWidth: 1)
+                        )
+                        .padding(.horizontal, 20)
+                        .padding(.top, 12)
 
                     Button(action: { withAnimation { showMyUsers.toggle() } }) {
                         HStack {
@@ -445,7 +513,10 @@ struct UserPickerSheet: View {
                                 .foregroundColor(.white)
                                 .frame(maxWidth: .infinity)
                                 .frame(height: 48)
-                                .background(RoundedRectangle(cornerRadius: 12).fill(AppColors.surfaceLight))
+                                .background(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .fill(AppColors.surfaceLight)
+                                )
                         }
 
                         Button(action: { dismiss() }) {
@@ -454,7 +525,10 @@ struct UserPickerSheet: View {
                                 .foregroundColor(.white)
                                 .frame(maxWidth: .infinity)
                                 .frame(height: 48)
-                                .background(RoundedRectangle(cornerRadius: 12).fill(AppColors.buttonActive))
+                                .background(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .fill(AppColors.buttonActive)
+                                )
                         }
                     }
                     .padding(.horizontal, 20)

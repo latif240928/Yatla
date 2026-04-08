@@ -2,6 +2,9 @@
 import Foundation
 
 final class TaskRepositoryImpl: TaskRepository {
+    
+    
+    
 
     private var tasks: [TaskItem] = TaskItem.createdMockList
 
@@ -25,7 +28,7 @@ final class TaskRepositoryImpl: TaskRepository {
             createdAt: Date(),
             startDate: Date(),
             dueDate: task.endDate,
-            files: task.files,           // ✅ Hata 1 düzeltildi — [TaskFile] direkt atanıyor
+            files: task.files,
             comments: [],
             number: tasks.count + 1
         )
@@ -74,13 +77,29 @@ final class TaskRepositoryImpl: TaskRepository {
             throw AppError.notFound
         }
         let comment = TaskComment(
-            id: UUID().uuidString,       // ✅ Hata 2 düzeltildi — String
-            user: User.mockUser1,        // ✅ Hata 3 düzeltildi — User objesi
-            text: text,                  // ✅ alan adı text (userName değil)
+            id: UUID().uuidString,       
+            user: User.mockUser1,
+            text: text,
             date: Date()
         )
         tasks[index].comments.append(comment)
         return comment
+    }
+
+    func uploadFile(taskId: String, fileURL: URL) async throws -> TaskFile {
+        try await Task.sleep(nanoseconds: 200_000_000)
+        // For this mock, just return a TaskFile with mock data
+        let file = TaskFile(
+            id: UUID().uuidString,
+            name: fileURL.lastPathComponent,
+            format: fileURL.pathExtension,
+            url: fileURL.absoluteString
+        )
+        // Optionally, attach the file to the right task in-memory:
+        if let index = tasks.firstIndex(where: { $0.id == taskId }) {
+            tasks[index].files.append(file)
+        }
+        return file
     }
 }
 

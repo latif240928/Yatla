@@ -1,4 +1,3 @@
-
 // UI/Features/Users/UsersView.swift
 import SwiftUI
 
@@ -7,6 +6,7 @@ struct UsersView: View {
     @State private var selectedTab: UsersTab = .users
     @State private var showSearch: Bool = false
     @State private var selectedUser: User? = nil
+    @State private var searchText: String = ""
 
     enum UsersTab {
         case users, invitations
@@ -41,7 +41,7 @@ struct UsersView: View {
 
                     Spacer()
 
-                    // Search butonu
+                    // Search buttony
                     Button(action: { withAnimation { showSearch.toggle() } }) {
                         Image(systemName: "magnifyingglass")
                             .font(.system(size: 18))
@@ -57,7 +57,7 @@ struct UsersView: View {
 
                 // search field
                 if showSearch {
-                    TextField("Ulanyjy ady ýa-da nomeri...", text: $viewModel.searchQuery)
+                    TextField("Gözleg...", text: $searchText)
                         .font(AppFonts.body)
                         .foregroundColor(.white)
                         .padding(12)
@@ -66,8 +66,10 @@ struct UsersView: View {
                         .overlay(RoundedRectangle(cornerRadius: 10).stroke(AppColors.divider, lineWidth: 1))
                         .padding(.horizontal, 20)
                         .padding(.bottom, 12)
+                        .autocorrectionDisabled()
                         .transition(.move(edge: .top).combined(with: .opacity))
                 }
+
 
                 // MARK: - Tab saylayjy
                 HStack(spacing: 0) {
@@ -95,7 +97,7 @@ struct UsersView: View {
                 }
             }
 
-            // MARK: '+' butonu
+            // MARK: '+' buttony
             VStack {
                 Spacer()
                 HStack {
@@ -229,3 +231,4 @@ struct UsersView: View {
     UsersView()
         .preferredColorScheme(.dark)
 }
+

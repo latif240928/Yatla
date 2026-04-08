@@ -6,7 +6,9 @@ import Combine
 final class SettingsViewModel: ObservableObject {
 
     private let repo: SettingsRepository
-    private let container: DIContainer  
+    private let container: DIContainer
+    
+    @EnvironmentObject var router: AppRouter
 
     @Published var settings: AppSettings
     @Published var profile: Profile
@@ -39,21 +41,22 @@ final class SettingsViewModel: ObservableObject {
     func toggleTheme() {
         settings.isDarkMode.toggle()
         repo.updateTheme(isDark: settings.isDarkMode)
-        container.appSettings.isDarkMode = settings.isDarkMode  // ✅ RootView güncellenir
+        container.appSettings.isDarkMode = settings.isDarkMode  
     }
 
     func selectLanguage(_ lang: Language) {
         settings.selectedLanguage = lang
         repo.updateLanguage(lang)
-        container.appSettings.selectedLanguage = lang  // ✅ sync
+        container.appSettings.selectedLanguage = lang  //  sync
     }
 
     func refreshStats() {
         stats = repo.getStats()
     }
 
-    func logout() {
-        repo.logout()
+    func logout(router: AppRouter) {
+            router.logout() 
+        
         isLoggedIn = false
     }
 }

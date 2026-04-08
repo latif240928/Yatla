@@ -30,7 +30,7 @@ struct HomeView: View {
                     case .chats:
                         ChatsView()
                     case .settings:
-                        // ✅ Artık gerçek SettingsView kullanılıyor
+                        // Hakyky settings view ulanylyar
                         SettingsView()
                     }
                 }

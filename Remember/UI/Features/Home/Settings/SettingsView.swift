@@ -3,6 +3,7 @@ import SwiftUI
 
 struct SettingsView: View {
     @StateObject var vm = SettingsViewModel()
+    @EnvironmentObject var router: AppRouter
 
     var body: some View {
         NavigationStack {
@@ -84,7 +85,7 @@ struct SettingsView: View {
                                 .background(AppColors.divider)
                                 .padding(.horizontal, 20)
 
-                            Button(action: { vm.logout() }) {
+                            Button(action: { vm.logout(router: router) }) {
                                 HStack(spacing: 12) {
                                     ZStack {
                                         RoundedRectangle(cornerRadius: 8)
@@ -145,5 +146,5 @@ struct SettingsView: View {
 }
 
 #Preview {
-    SettingsView().preferredColorScheme(.dark)
+    SettingsView().environmentObject(AppRouter()).preferredColorScheme(.dark)
 }

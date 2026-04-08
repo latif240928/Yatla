@@ -1,5 +1,3 @@
-//
-//  Stats.swift
 // Domain/Entities/Stats.swift
 import Foundation
 

@@ -15,15 +15,15 @@ struct RootView: View {
 
             case .auth:
                 NavigationStack(path: $router.authPath) {
-                    RegistrationView()          // ✅ parametresiz — init içinde hallediyor
+                    RegistrationView()
                         .navigationDestination(for: AuthRoute.self) { route in
                             switch route {
                             case .registration:
                                 RegistrationView()
                             case .sms(let phone):
-                                SMSVerificationView(phoneNumber: phone)  // ✅
+                                SMSVerificationView(phoneNumber: phone)
                             case .signIn(let token):
-                                AccountSetupView(token: token)           // ✅
+                                AccountSetupView(token: token)           
                             }
                         }
                 }

@@ -57,3 +57,9 @@ final class DIContainer: ObservableObject {
     lazy var respondToOfferUseCase   = RespondToOfferUseCase(repo: taskOfferRepository)
     lazy var sendTaskOfferUseCase    = SendTaskOfferUseCase(repo: taskOfferRepository)
 }
+
+extension DIContainer {
+    var uploadTaskFileUseCase: UploadTaskFileUseCase {
+        UploadTaskFileUseCaseImpl(taskRepository: taskRepository)
+    }
+}

@@ -12,7 +12,7 @@ final class HomeViewModel: ObservableObject {
     @Published var isLoading: Bool = false
     @Published var errorMessage: String?
 
-    // MARK: - Sheet kontrolleri
+    // MARK: - Sheet kontrollary
     @Published var showDepartmentSheet: Bool = false
     @Published var showStatusSheet: Bool = false
 

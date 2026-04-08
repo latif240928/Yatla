@@ -1,4 +1,6 @@
 //  TaskRepository.swift
+import Foundation
+
 protocol TaskRepository {
     func getTasks() async throws -> [TaskItem]
     
@@ -13,4 +15,6 @@ protocol TaskRepository {
     func removeAssignee(taskID: String, assigneeID: String) async throws -> TaskItem
     
     func addComment(taskID: String, text: String) async throws -> TaskComment
+    
+    func uploadFile(taskId: String, fileURL: URL) async throws -> TaskFile
 }

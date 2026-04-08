@@ -155,7 +155,7 @@ struct ChatsView: View {
                     }
                 }
             }
-            // ── Bölüm sheet ────────────────────────────────────────────────
+            //  Bölüm sheet 
             .sheet(isPresented: $showDepartmentSheet) {
                 DepartmentSheet(
                     selectedDepartment: $viewModel.selectedDepartment,
@@ -168,7 +168,7 @@ struct ChatsView: View {
                 .presentationDetents([.medium, .large])
                 .preferredColorScheme(.dark)
             }
-            // ── AddUser sheet ──────────────────────────────────────────────
+            // ── AddUser sheet
             .sheet(isPresented: $showAddUserSheet) {
                 AddUserSheet(
                     isPresented: $showAddUserSheet,
@@ -183,7 +183,7 @@ struct ChatsView: View {
         }
     }
 
-    // MARK: - Çatlar (swipe: poz + sessiz) ─────────────────────────────────
+    // MARK: - Çatlar (swipe: poz + sessiz)
     @ViewBuilder
     private var chatsContent: some View {
         ForEach(filteredChats) { chat in
@@ -212,7 +212,7 @@ struct ChatsView: View {
         }
     }
 
-    // MARK: - Grupbalar ──────────────────────────────────────────────────────
+    // MARK: - Grupbalar
     @ViewBuilder
     private var groupsContent: some View {
         ForEach(filteredGroups) { group in
@@ -220,7 +220,7 @@ struct ChatsView: View {
         }
     }
 
-    // MARK: - Tab butonu ─────────────────────────────────────────────────────
+    // MARK: - Tab butonu
     private func tabButton(title: String, tab: ChatsTab) -> some View {
         Button(action: {
             withAnimation(.easeInOut(duration: 0.2)) { selectedTab = tab }

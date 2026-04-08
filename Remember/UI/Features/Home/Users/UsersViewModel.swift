@@ -31,7 +31,7 @@ final class UsersViewModel: ObservableObject {
         self.offerRepository  = offerRepository
         self.getUsersUC       = GetUsersUseCase(repository: userRepository)
         self.searchUsersUC    = SearchUsersUseCase(repository: userRepository)
-        self.selectedDepartment = MockDepartments.all[0]  // ✅ init'te set
+        self.selectedDepartment = MockDepartments.all[0]  
         Task { await loadUsers() }
         Task { await loadIncomingOffers() }
     }
