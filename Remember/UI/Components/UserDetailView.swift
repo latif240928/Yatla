@@ -1,10 +1,3 @@
-//
-//  UserDetailView.swift
-//  Remember
-//
-//  Created by Latif on 31.03.2026.
-//
-
 // UI/Features/Users/Components/UserDetailView.swift
 import SwiftUI
 
@@ -18,13 +11,11 @@ struct UserDetailView: View {
         case tabsyran = "Tabşyran işler"
     }
 
-    
     var assignedTasks: [TaskItem] {
         TaskItem.createdMockList.filter { $0.assigneeIds.contains(user.id) }
     }
 
     var submittedTasks: [TaskItem] {
-        // Tamamlanyp ugradylan tasklar
         TaskItem.createdMockList.filter {
             $0.assigneeIds.contains(user.id) && $0.status == .completed
         }
@@ -35,16 +26,15 @@ struct UserDetailView: View {
             AppColors.background.ignoresSafeArea()
 
             VStack(spacing: 0) {
-                // AppBar
                 HStack {
                     Button(action: { dismiss() }) {
                         HStack(spacing: 4) {
                             Image(systemName: "chevron.left")
-                                .font(.system(size: 14, weight: .semibold))
+                                .font(AppFonts.aestetico(size: 14, weight: .semibold))
                             Text(user.name)
                                 .font(AppFonts.subheadline)
                         }
-                        .foregroundColor(.white)
+                        .foregroundColor(AppColors.textPrimary)
                     }
 
                     Spacer()
@@ -55,13 +45,16 @@ struct UserDetailView: View {
                             .frame(width: 36, height: 36)
                             .background(AppColors.error.opacity(0.1))
                             .cornerRadius(8)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .stroke(AppColors.error.opacity(0.2), lineWidth: 1)
+                            )
                     }
                 }
                 .padding(.horizontal, 20)
                 .padding(.top, 16)
                 .padding(.bottom, 12)
 
-                // Tab saylayjy
                 HStack(spacing: 0) {
                     ForEach(UserDetailTab.allCases, id: \.rawValue) { tab in
                         Button(action: {
@@ -69,7 +62,7 @@ struct UserDetailView: View {
                         }) {
                             Text(tab.rawValue)
                                 .font(AppFonts.subheadline)
-                                .foregroundColor(selectedTab == tab ? .white : AppColors.textSecondary)
+                                .foregroundColor(selectedTab == tab ? AppColors.textPrimary : AppColors.textSecondary)
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 12)
                                 .background(selectedTab == tab ? AppColors.surfaceLight : Color.clear)
@@ -80,10 +73,13 @@ struct UserDetailView: View {
                 .padding(4)
                 .background(AppColors.surface)
                 .cornerRadius(10)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10)
+                        .stroke(AppColors.divider, lineWidth: 1)
+                )
                 .padding(.horizontal, 20)
                 .padding(.bottom, 12)
 
-                // İçerik
                 ScrollView {
                     LazyVStack(spacing: 12) {
                         switch selectedTab {
@@ -92,7 +88,6 @@ struct UserDetailView: View {
                                 emptyState(text: "Berilen iş ýok")
                             } else {
                                 ForEach(assignedTasks) { task in
-                                    //  TaskCardExpanded ulanyar
                                     CreatedTaskCard(task: task)
                                 }
                             }
@@ -118,7 +113,7 @@ struct UserDetailView: View {
         VStack(spacing: 12) {
             Spacer().frame(height: 40)
             Image(systemName: "tray")
-                .font(.system(size: 48))
+                .font(AppFonts.aestetico(size: 48))
                 .foregroundColor(AppColors.textHint)
             Text(text)
                 .font(AppFonts.body)
@@ -128,7 +123,6 @@ struct UserDetailView: View {
     }
 }
 
-// MARK: - Tamamlanyp ugradylan task kardy (kabul/red buttonlu)
 struct SubmittedTaskCard: View {
     let task: TaskItem
     @State private var isAccepted: Bool = false
@@ -136,12 +130,11 @@ struct SubmittedTaskCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            // Header + date
             HStack(alignment: .top) {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(task.assignees.first?.user.name ?? "")
-                        .font(.system(size: 16, weight: .bold))
-                        .foregroundColor(.white)
+                        .font(AppFonts.aestetico(size: 16, weight: .bold))
+                        .foregroundColor(AppColors.textPrimary)
                     Text("\(task.department) / \(task.title.lowercased())")
                         .font(AppFonts.caption1)
                         .foregroundColor(AppColors.textSecondary)
@@ -152,31 +145,33 @@ struct SubmittedTaskCard: View {
                     .foregroundColor(AppColors.textHint)
             }
 
-            // Kommentariya
             VStack(alignment: .leading, spacing: 6) {
                 Text("Kommentariýa:")
                     .font(AppFonts.caption1)
                     .foregroundColor(AppColors.textSecondary)
                 Text(task.description)
                     .font(AppFonts.taskDescription)
-                    .foregroundColor(.white)
+                    .foregroundColor(AppColors.textPrimary)
                     .padding(12)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .background(AppColors.surfaceAlt)
                     .cornerRadius(10)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 10)
+                            .stroke(AppColors.divider, lineWidth: 1)
+                    )
             }
 
-            // Fayl (mock)
             VStack(alignment: .leading, spacing: 6) {
                 Text("Faýllar:")
                     .font(AppFonts.caption1)
                     .foregroundColor(AppColors.textSecondary)
                 HStack(spacing: 10) {
                     Image(systemName: "doc.fill")
-                        .foregroundColor(.red)
+                        .foregroundColor(AppColors.error)
                     Text("fayl.pdf")
                         .font(AppFonts.body)
-                        .foregroundColor(.white)
+                        .foregroundColor(AppColors.textPrimary)
                     Spacer()
                     Text("4,5 mb")
                         .font(AppFonts.caption1)
@@ -189,18 +184,27 @@ struct SubmittedTaskCard: View {
                 .padding(12)
                 .background(AppColors.surfaceAlt)
                 .cornerRadius(10)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10)
+                        .stroke(AppColors.divider, lineWidth: 1)
+                )
             }
 
-            // Kabul / Red
             if isAccepted {
                 HStack {
-                    Image(systemName: "checkmark.circle.fill").foregroundColor(AppColors.success)
-                    Text("Kabul edildi").font(AppFonts.subheadline).foregroundColor(AppColors.success)
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundColor(AppColors.success)
+                    Text("Kabul edildi")
+                        .font(AppFonts.subheadline)
+                        .foregroundColor(AppColors.success)
                 }
             } else if isRejected {
                 HStack {
-                    Image(systemName: "xmark.circle.fill").foregroundColor(AppColors.error)
-                    Text("Yzyna gaýtaryldy").font(AppFonts.subheadline).foregroundColor(AppColors.error)
+                    Image(systemName: "xmark.circle.fill")
+                        .foregroundColor(AppColors.error)
+                    Text("Yzyna gaýtaryldy")
+                        .font(AppFonts.subheadline)
+                        .foregroundColor(AppColors.error)
                     Spacer()
                     Button(action: {}) {
                         Image(systemName: "trash")
@@ -208,28 +212,49 @@ struct SubmittedTaskCard: View {
                             .frame(width: 36, height: 36)
                             .background(AppColors.error.opacity(0.1))
                             .cornerRadius(8)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .stroke(AppColors.error.opacity(0.2), lineWidth: 1)
+                            )
                     }
                 }
             } else {
                 HStack(spacing: 12) {
                     Button(action: { withAnimation { isRejected = true } }) {
                         Text("Yzyna gaýtarmak")
-                            .font(AppFonts.subheadline).foregroundColor(.white)
-                            .frame(maxWidth: .infinity).frame(height: 44)
-                            .background(RoundedRectangle(cornerRadius: 10).fill(AppColors.error))
+                            .font(AppFonts.subheadline)
+                            .foregroundColor(AppColors.textInverse)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 44)
+                            .background(
+                                RoundedRectangle(cornerRadius: 10)
+                                    .fill(AppColors.error)
+                            )
                     }
                     Button(action: { withAnimation { isAccepted = true } }) {
                         Text("Kabul etmek")
-                            .font(AppFonts.subheadline).foregroundColor(.white)
-                            .frame(maxWidth: .infinity).frame(height: 44)
-                            .background(RoundedRectangle(cornerRadius: 10).fill(AppColors.success))
+                            .font(AppFonts.subheadline)
+                            .foregroundColor(AppColors.textInverse)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 44)
+                            .background(
+                                RoundedRectangle(cornerRadius: 10)
+                                    .fill(AppColors.success)
+                            )
                     }
                 }
             }
         }
         .padding(16)
-        .background(RoundedRectangle(cornerRadius: 16).fill(AppColors.surface))
-        .overlay(RoundedRectangle(cornerRadius: 16).stroke(AppColors.divider, lineWidth: 1))
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(AppColors.surface)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .stroke(AppColors.divider, lineWidth: 1)
+        )
+        .shadow(color: AppColors.shadowColor(opacity: 0.04), radius: 8, y: 4)
     }
 
     private func formatDate(_ date: Date) -> String {
@@ -247,9 +272,10 @@ private var previewUser: User {
         departmentIds: ["iOS Team"]
     )
 }
+
 #Preview("User Detail") {
     NavigationStack {
         UserDetailView(user: previewUser)
     }
-    .preferredColorScheme(.dark)
+    .background(AppColors.background)
 }

@@ -12,6 +12,7 @@ enum AppError: LocalizedError {
     case unauthorized
     case notFound           
     case unknown
+    case shortPassword
 
     var errorDescription: String? {
         switch self {
@@ -25,6 +26,8 @@ enum AppError: LocalizedError {
         case .unauthorized:    return "Rugsat ýok"
         case .notFound:        return "Tapylmady"
         case .unknown:         return "Näbelli ýalňyşlyk"
+        case .shortPassword:  return "Parol azyndan 8 simwol bolmaly"
+                
         }
     }
 }

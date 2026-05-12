@@ -1,10 +1,11 @@
 // UI/Features/Auth/SMSVerification/SMSVerificationView.swift
+
 import SwiftUI
 
 struct SMSVerificationView: View {
     @EnvironmentObject var router: AppRouter
+    @EnvironmentObject var container: DIContainer
     @StateObject private var viewModel: SMSVerificationViewModel
-    @State private var selectedLanguage: String = "TM"
     @FocusState private var isInputFocused: Bool
 
     init(phoneNumber: String) {
@@ -17,185 +18,106 @@ struct SMSVerificationView: View {
         )
     }
 
-    // MARK: - Computed helpers
-    private var boxStrokeColor: (Int) -> Color {
-        { index in
-            let filled = index < viewModel.otpCode.count
-            if let error = viewModel.errorMessage, !error.isEmpty {
-                return filled ? AppColors.error : AppColors.error.opacity(0.35)
-            }
-            if viewModel.isCodeComplete {
-                return Color.green
-            }
-            if index == viewModel.otpCode.count {
-                return AppColors.primary
-            }
-            return filled ? AppColors.primary.opacity(0.6) : Color.white.opacity(0.12)
-        }
-    }
+    private var lang: Language { container.appSettings.selectedLanguage }
 
-    private var boxScale: (Int) -> CGFloat {
-        { index in
-            index == viewModel.otpCode.count ? 1.06 : 1.0
-        }
-    }
-
-    private var digitAt: (Int) -> String {
-        { index in
-            let chars = Array(viewModel.otpCode)
-            return index < chars.count ? String(chars[index]) : ""
-        }
-    }
-
-    // MARK: - Body
     var body: some View {
-        ZStack {
-            AppColors.background.ignoresSafeArea()
-
-            // Subtle radial glow at top
-            RadialGradient(
-                gradient: Gradient(colors: [
-                    AppColors.primary.opacity(0.12),
-                    Color.clear
-                ]),
-                center: .top,
-                startRadius: 0,
-                endRadius: 420
-            )
-            .ignoresSafeArea()
-
-            VStack(spacing: 0) {
-                // Language selector
-                HStack {
-                    Spacer()
-                    LanguageMenu(selectedLanguage: $selectedLanguage)
-                }
-                .padding(.horizontal, 24)
-                .padding(.top, 10)
-
-                Spacer()
-
-                // Lock icon
-                ZStack {
-                    RoundedRectangle(cornerRadius: 22)
-                        .fill(AppColors.primary.opacity(0.18))
-                        .frame(width: 80, height: 80)
-                    Image(systemName: "lock.shield.fill")
-                        .font(.system(size: 36))
-                        .foregroundStyle(AppColors.primary)
-                }
-                .padding(.bottom, 24)
-
-                // Title
-                Text("Sms ugradyldy")
-                    .font(AppFonts.largeTitle.bold())
-                    .foregroundColor(.white)
-                    .multilineTextAlignment(.center)
-
-                // Subtitle
-                Text("Telefonyňyza gelen 4 sanly kody giriziň")
-                    .font(AppFonts.subheadline)
-                    .foregroundColor(AppColors.textSecondary)
-                    .multilineTextAlignment(.center)
-                    .padding(.top, 8)
-                    .padding(.horizontal, 40)
-                    .padding(.bottom, 36)
-
-                // OTP Boxes
+        AuthScreenScaffold(
+            showsBackButton: true,
+            onBack: { router.authPath.removeLast() }
+        ) {
+            VStack(spacing: AppSpacing.xl) {
+                lockBadge
+                titleBlock
                 otpBoxesView
-                    .padding(.bottom, 24)
-
-                // Error message
                 if let error = viewModel.errorMessage {
                     Text(error)
                         .font(AppFonts.caption1)
                         .foregroundColor(AppColors.error)
-                        .transition(.opacity.combined(with: .move(edge: .top)))
-                        .padding(.bottom, 8)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, AppSpacing.l)
+                        .transition(.opacity)
                 }
-
-                // Resend
                 resendView
-                    .padding(.bottom, 12)
-
-                Spacer()
-
-                // Verify button
-                Button(action: {
-                    viewModel.verifyOTP(router: router)
-                }) {
-                    HStack(spacing: 8) {
-                        if viewModel.isLoading {
-                            ProgressView().tint(.white)
-                        }
-                        Text("Tassyklamak")
-                            .font(AppFonts.headline.bold())
-                            .foregroundColor(viewModel.isCodeComplete ? .white : AppColors.textSecondary)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 54)
-                    .background(
-                        RoundedRectangle(cornerRadius: 16)
-                            .fill(viewModel.isCodeComplete
-                                  ? AppColors.buttonActive
-                                  : AppColors.surface)
-                    )
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 16)
-                            .stroke(
-                                viewModel.isCodeComplete
-                                    ? Color.clear
-                                    : Color.white.opacity(0.08),
-                                lineWidth: 1
-                            )
-                    )
-                }
-                .disabled(!viewModel.isCodeComplete || viewModel.isLoading)
-                .animation(.spring(response: 0.3, dampingFraction: 0.7), value: viewModel.isCodeComplete)
-                .padding(.horizontal, 24)
-                .padding(.bottom, 16)
-
-                Text("Gizlinlik syyasaty")
-                    .font(AppFonts.caption2)
-                    .foregroundColor(AppColors.textHint)
-                    .padding(.bottom, 24)
+                primaryButton
             }
+            .padding(.top, AppSpacing.l)
+            .frame(maxWidth: .infinity)
         }
-        .navigationBarHidden(true)
         .onTapGesture { isInputFocused = true }
         .onAppear { isInputFocused = true }
         .animation(.easeInOut(duration: 0.2), value: viewModel.errorMessage)
     }
 
-    // MARK: - OTP Boxes
-    private var otpBoxesView: some View {
-        ZStack {
-            // Hidden real TextField — tüm input buradan
-            TextField("", text: $viewModel.otpCode)
-                .keyboardType(.numberPad)
-                .focused($isInputFocused)
-                .opacity(0)
-                .frame(width: 1, height: 1)
-                .onChange(of: viewModel.otpCode) { newValue in
-                    let filtered = newValue.filter { $0.isNumber }
-                    let limited = String(filtered.prefix(4))
-                    if viewModel.otpCode != limited {
-                        viewModel.otpCode = limited
-                    }
-                }
+    // MARK: - Üst bölüm parçaları
 
-            // Visual 4 boxes
-            HStack(spacing: 16) {
-                ForEach(0..<4, id: \.self) { index in
-                    otpBox(index: index)
-                        .onTapGesture { isInputFocused = true }
-                }
-            }
+    private var lockBadge: some View {
+        ZStack {
+            AppShape.cardShape
+                .fill(AppColors.primary.opacity(0.18))
+                .frame(width: 76, height: 76)
+            Image(systemName: "lock.shield.fill")
+                .font(.system(size: 34, weight: .bold))
+                .foregroundColor(AppColors.primary)
         }
-        .padding(.horizontal, 24)
     }
 
-    private func otpBox(index: Int) -> some View {
+    private var titleBlock: some View {
+        VStack(spacing: 8) {
+            Text(L10n.string(.smsTitle, language: lang))
+                .font(AppFonts.largeTitle.bold())
+                .foregroundColor(AppColors.textPrimary)
+                .multilineTextAlignment(.center)
+
+            Text(L10n.string(.smsSubtitle, language: lang))
+                .font(AppFonts.subheadline)
+                .foregroundColor(AppColors.textSecondary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, AppSpacing.xl)
+
+            Text(viewModel.phoneNumber)
+                .font(AppFonts.subheadline.bold())
+                .foregroundColor(AppColors.primary)
+        }
+    }
+
+    // MARK: - OTP
+
+    private var otpBoxesView: some View {
+        GeometryReader { geo in
+            let horizontalInset: CGFloat = 0
+            let spacing: CGFloat = 10
+            let count = 4
+            let usable = max(geo.size.width - horizontalInset * 2 - spacing * CGFloat(count - 1), 0)
+            let side = min(max(usable / CGFloat(count), 50), 70)
+
+            ZStack {
+                TextField("", text: $viewModel.otpCode)
+                    .keyboardType(.numberPad)
+                    .focused($isInputFocused)
+                    .opacity(0)
+                    .frame(width: 1, height: 1)
+                    .onChange(of: viewModel.otpCode) { _, newValue in
+                        let filtered = newValue.filter { $0.isNumber }
+                        let limited = String(filtered.prefix(4))
+                        if viewModel.otpCode != limited {
+                            viewModel.otpCode = limited
+                        }
+                    }
+
+                HStack(spacing: spacing) {
+                    ForEach(0..<4, id: \.self) { index in
+                        otpBox(index: index, side: side)
+                            .onTapGesture { isInputFocused = true }
+                    }
+                }
+                .frame(maxWidth: .infinity)
+            }
+            .frame(height: side + 8)
+        }
+        .frame(height: 84)
+    }
+
+    private func otpBox(index: Int, side: CGFloat) -> some View {
         let digit = digitAt(index)
         let isActive = index == viewModel.otpCode.count && !viewModel.isCodeComplete
         let isFilled = index < viewModel.otpCode.count
@@ -203,34 +125,34 @@ struct SMSVerificationView: View {
         let isSuccess = viewModel.isCodeComplete && !hasError
 
         return ZStack {
-            // Box background
-            RoundedRectangle(cornerRadius: 16)
+            AppShape.inputShape
                 .fill(AppColors.surface)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 16)
-                        .stroke(boxStrokeColor(index), lineWidth: isActive || isFilled ? 2 : 1.5)
+                    AppShape.inputShape
+                        .stroke(
+                            boxStrokeColor(index),
+                            lineWidth: isActive || isFilled ? AppShape.Stroke.focused : AppShape.Stroke.regular
+                        )
                 )
                 .scaleEffect(boxScale(index))
                 .animation(.spring(response: 0.25, dampingFraction: 0.6), value: viewModel.otpCode.count)
                 .shadow(
                     color: isSuccess
-                        ? Color.green.opacity(0.3)
+                        ? AppColors.success.opacity(0.3)
                         : (hasError && isFilled
                             ? AppColors.error.opacity(0.3)
                             : (isActive ? AppColors.primary.opacity(0.25) : .clear)),
                     radius: 8, x: 0, y: 0
                 )
 
-            // Digit or cursor
             if digit.isEmpty && isActive {
-                // Blinking cursor
                 BlinkingCursor()
             } else {
                 Text(digit)
-                    .font(.system(size: 26, weight: .bold, design: .monospaced))
+                    .font(AppFonts.aestetico(size: min(side * 0.4, 28), weight: .bold))
                     .foregroundColor(
-                        isSuccess ? Color.green :
-                        (hasError ? AppColors.error : .white)
+                        isSuccess ? AppColors.success :
+                        (hasError ? AppColors.error : AppColors.textPrimary)
                     )
                     .transition(
                         .asymmetric(
@@ -240,36 +162,24 @@ struct SMSVerificationView: View {
                     )
                     .animation(.spring(response: 0.3, dampingFraction: 0.6), value: digit)
             }
-
-            // Index number at top
-            VStack {
-                Text("\(index + 1)")
-                    .font(.system(size: 11, weight: .medium))
-                    .foregroundColor(
-                        isActive
-                            ? AppColors.primary
-                            : Color.white.opacity(0.2)
-                    )
-                    .padding(.top, 6)
-                Spacer()
-            }
         }
-        .frame(width: 72, height: 72)
+        .frame(width: side, height: side)
     }
 
-    // MARK: - Resend View
+    // MARK: - Yeniden gönder
+
     private var resendView: some View {
         Group {
             if viewModel.canResend {
                 Button(action: { viewModel.resendOTP() }) {
-                    Text("Kody täzeden ugratmak")
+                    Text(L10n.string(.smsResend, language: lang))
                         .font(AppFonts.subheadline.bold())
                         .foregroundColor(AppColors.primary)
                 }
                 .transition(.opacity)
             } else {
                 HStack(spacing: 4) {
-                    Text("Kody täzeden ugratmak")
+                    Text(L10n.string(.smsResendCountdown, language: lang))
                         .font(AppFonts.subheadline)
                         .foregroundColor(AppColors.textSecondary)
                     Text("(\(viewModel.timerText))")
@@ -281,16 +191,55 @@ struct SMSVerificationView: View {
         }
         .animation(.easeInOut, value: viewModel.canResend)
     }
+
+    // MARK: - Onay düğmesi
+
+    private var primaryButton: some View {
+        AuthGradientPrimaryButton(
+            title: L10n.string(.smsConfirm, language: lang),
+            titleForeground: viewModel.isCodeComplete ? .white : AppColors.textSecondary,
+            isEnabled: viewModel.isCodeComplete,
+            isLoading: viewModel.isLoading,
+            animation: .spring(response: 0.3, dampingFraction: 0.7)
+        ) {
+            viewModel.verifyOTP(router: router)
+        }
+        .animation(.spring(response: 0.3, dampingFraction: 0.7), value: viewModel.isCodeComplete)
+    }
+
+    // MARK: - Yardımcılar
+
+    private func boxStrokeColor(_ index: Int) -> Color {
+        let filled = index < viewModel.otpCode.count
+        if let error = viewModel.errorMessage, !error.isEmpty {
+            return filled ? AppColors.error : AppColors.error.opacity(0.35)
+        }
+        if viewModel.isCodeComplete {
+            return AppColors.success
+        }
+        if index == viewModel.otpCode.count {
+            return AppColors.primary
+        }
+        return filled ? AppColors.primary.opacity(0.6) : AppColors.divider
+    }
+
+    private func boxScale(_ index: Int) -> CGFloat {
+        index == viewModel.otpCode.count ? 1.06 : 1.0
+    }
+
+    private func digitAt(_ index: Int) -> String {
+        let chars = Array(viewModel.otpCode)
+        return index < chars.count ? String(chars[index]) : ""
+    }
 }
 
-// MARK: - Blinking Cursor
 private struct BlinkingCursor: View {
     @State private var visible = true
 
     var body: some View {
         RoundedRectangle(cornerRadius: 2)
             .fill(AppColors.primary)
-            .frame(width: 2.5, height: 30)
+            .frame(width: 2.5, height: 26)
             .opacity(visible ? 1 : 0)
             .onAppear {
                 withAnimation(.easeInOut(duration: 0.5).repeatForever()) {
@@ -303,4 +252,5 @@ private struct BlinkingCursor: View {
 #Preview {
     SMSVerificationView(phoneNumber: "+993 62445524")
         .environmentObject(AppRouter())
+        .environmentObject(DIContainer.shared)
 }

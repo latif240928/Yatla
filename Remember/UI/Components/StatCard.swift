@@ -1,5 +1,5 @@
 import SwiftUI
-// MARK: - StatCard
+
 struct StatCard: View {
     let title: String
     let value: Int
@@ -8,7 +8,7 @@ struct StatCard: View {
     var body: some View {
         VStack(spacing: 8) {
             Text("\(value)")
-                .font(.system(size: 32, weight: .bold))
+                .font(AppFonts.aestetico(size: 32, weight: .bold))
                 .foregroundColor(color)
             Text(title)
                 .font(AppFonts.caption1)
@@ -18,6 +18,11 @@ struct StatCard: View {
         .frame(maxWidth: .infinity)
         .padding(.vertical, 20)
         .background(AppColors.surface)
-        .cornerRadius(12)
+        .cornerRadius(16)
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .stroke(AppColors.divider, lineWidth: 1)
+        )
+        .shadow(color: AppColors.shadowColor(opacity: 0.04), radius: 8, y: 4)
     }
 }

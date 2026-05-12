@@ -1,11 +1,16 @@
 // UI/Common/Components/AuthInputFields.swift
+//
+// Kimlik doğrulama akışında kullanılan düz ve güvenli metin alanları.
+// Her ikisi de yarıçap ve çizgi kalınlıklarını `AppShape`'ten alır,
+// böylece uygulamadaki diğer yuvarlatılmış yüzeylerle uyumlu kalır.
+
 import SwiftUI
 
-// MARK: - Auth Text Field
 struct AuthTextField: View {
     let label: String
     @Binding var text: String
     var placeholder: String = ""
+    var keyboard: UIKeyboardType = .default
 
     @FocusState private var isFocused: Bool
 
@@ -18,15 +23,16 @@ struct AuthTextField: View {
             TextField(placeholder, text: $text)
                 .font(AppFonts.body)
                 .foregroundColor(AppColors.textPrimary)
-                .padding(.horizontal, 16)
+                .keyboardType(keyboard)
+                .padding(.horizontal, AppSpacing.l)
                 .padding(.vertical, 14)
                 .background(AppColors.surface)
-                .cornerRadius(12)
+                .clipShape(AppShape.inputShape)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 12)
+                    AppShape.inputShape
                         .stroke(
-                            isFocused ? AppColors.primary : AppColors.divider,
-                            lineWidth: isFocused ? 1.5 : 1
+                            isFocused ? AppColors.borderFocused : AppColors.divider,
+                            lineWidth: isFocused ? AppShape.Stroke.focused : AppShape.Stroke.regular
                         )
                 )
                 .focused($isFocused)
@@ -35,7 +41,6 @@ struct AuthTextField: View {
     }
 }
 
-// MARK: - Auth Secure Field
 struct AuthSecureField: View {
     let label: String
     @Binding var text: String
@@ -65,20 +70,22 @@ struct AuthSecureField: View {
                 Button(action: { isVisible.toggle() }) {
                     Image(systemName: isVisible ? "eye.fill" : "eye.slash.fill")
                         .foregroundColor(AppColors.textSecondary)
-                        .font(.system(size: 18))
+                        .font(AppFonts.aestetico(size: 18))
                 }
             }
-            .padding(.horizontal, 16)
+            .padding(.horizontal, AppSpacing.l)
             .padding(.vertical, 14)
             .background(AppColors.surface)
-            .cornerRadius(12)
+            .clipShape(AppShape.inputShape)
             .overlay(
-                RoundedRectangle(cornerRadius: 12)
+                AppShape.inputShape
                     .stroke(
                         errorMessage != nil
                             ? AppColors.error
-                            : (isFocused ? AppColors.primary : AppColors.divider),
-                        lineWidth: isFocused ? 1.5 : 1
+                            : (isFocused ? AppColors.borderFocused : AppColors.divider),
+                        lineWidth: isFocused || errorMessage != nil
+                            ? AppShape.Stroke.focused
+                            : AppShape.Stroke.regular
                     )
             )
             .focused($isFocused)

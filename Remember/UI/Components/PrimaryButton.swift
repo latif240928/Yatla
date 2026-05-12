@@ -1,8 +1,5 @@
 import SwiftUI
 
-// MARK: - PrimaryButton
-// Programmanyn esasy bottony her yerde ulanylyp biliner
-
 struct PrimaryButton: View {
     let title: String
     var isEnabled: Bool = true
@@ -11,15 +8,15 @@ struct PrimaryButton: View {
     let action: () -> Void
     
     enum ButtonStyle {
-        case primary    // Cyan
-        case danger     // Gyzyl
-        case success    // Yaşyl
+        case primary
+        case danger
+        case success
         
         var activeColor: Color {
             switch self {
             case .primary: return AppColors.buttonActive
-            case .danger: return AppColors.buttonDanger
-            case .success: return AppColors.buttonSuccess
+            case .danger: return AppColors.error
+            case .success: return AppColors.success
             }
         }
     }
@@ -29,11 +26,11 @@ struct PrimaryButton: View {
             HStack(spacing: 8) {
                 if isLoading {
                     ProgressView()
-                        .tint(.white)
+                        .tint(AppColors.textInverse)
                 }
                 Text(title)
                     .font(AppFonts.headline)
-                    .foregroundColor(.white)
+                    .foregroundColor(AppColors.textInverse)
             }
             .frame(maxWidth: .infinity)
             .frame(height: 52)
@@ -41,8 +38,15 @@ struct PrimaryButton: View {
                 RoundedRectangle(cornerRadius: 14)
                     .fill(isEnabled ? style.activeColor : AppColors.buttonDisabled)
             )
+            .overlay(
+                RoundedRectangle(cornerRadius: 14)
+                    .stroke(
+                        isEnabled ? Color.clear : AppColors.divider,
+                        lineWidth: 1
+                    )
+            )
             .shadow(
-                color: isEnabled ? style.activeColor.opacity(0.3) : .clear,
+                color: isEnabled ? style.activeColor.opacity(0.25) : .clear,
                 radius: 8, x: 0, y: 4
             )
         }
@@ -51,7 +55,6 @@ struct PrimaryButton: View {
     }
 }
 
-// MARK: - Preview
 #Preview {
     VStack(spacing: 16) {
         PrimaryButton(title: "Dowam et", isEnabled: true) {}

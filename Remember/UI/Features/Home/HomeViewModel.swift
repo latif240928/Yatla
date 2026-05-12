@@ -1,10 +1,10 @@
-// UI/Features/Home/HomeViewModel.swift
+// Ana sekme: görev listesi, departman ve durum süzgeçleri.
 import SwiftUI
 import Combine
 
 @MainActor
 final class HomeViewModel: ObservableObject {
-    // MARK: - Published
+    // MARK: - Yayınlanan durum
     @Published var tasks: [TaskItem] = []
     @Published var departments: [Department] = []
     @Published var selectedDepartment: Department? = nil
@@ -12,14 +12,14 @@ final class HomeViewModel: ObservableObject {
     @Published var isLoading: Bool = false
     @Published var errorMessage: String?
 
-    // MARK: - Sheet kontrollary
+    // MARK: - Sayfa örtüleri (sheet)
     @Published var showDepartmentSheet: Bool = false
     @Published var showStatusSheet: Bool = false
 
-    // MARK: - Current User backend geleson auth den alynar
+    // MARK: - Oturum kullanıcısı (kimlik doğrulama sonrası sunucudan gelir)
     let currentUser = CurrentUserProvider.user
 
-    // MARK: - Use Cases
+    // MARK: - Use case'ler
     private let getTasksUseCase: GetTasksUseCase
     private let getDepartmentsUseCase: GetDepartmentsUseCase
     private let createDepartmentUseCase: CreateDepartmentUseCase
@@ -38,25 +38,22 @@ final class HomeViewModel: ObservableObject {
         self.updateTaskStatusUseCase = updateTaskStatusUseCase ?? DIContainer.shared.updateTaskStatusUseCase
     }
 
-    // MARK: - Computed
+    // MARK: - Hesaplanmış özellikler
+    /// Mevcut kullanıcının "dahil olduğu" görevler — ya oluşturucusu ya da
+    /// atanan kişi. Bu, ana sekme ("Ýumuşlar") için kullanıcı beklentisine
+    /// uygundur: kabul edilen bir teklif (oluşturucunun başka biri olduğu)
+    /// kullanıcının kendi oluşturduğu görevlerle birlikte burada görünür.
     var filteredTasks: [TaskItem] {
-        var result = tasks
+        var result = tasks.filter {
+            $0.creatorId == currentUser.id ||
+            $0.assigneeIds.contains(currentUser.id)
+        }
 
         if let dept = selectedDepartment {
             if dept.id == "sahsy" {
-                // Şahsy tasklar
                 result = result.filter { $0.departmentId == "sahsy" }
             } else {
-                // Saylanan department + mana berilen
-                result = result.filter {
-                    $0.departmentId == dept.id &&
-                    $0.assigneeIds.contains(currentUser.id)
-                }
-            }
-        } else {
-            // Hemmesi
-            result = result.filter {
-                $0.assigneeIds.contains(currentUser.id)
+                result = result.filter { $0.departmentId == dept.id }
             }
         }
 
@@ -67,7 +64,7 @@ final class HomeViewModel: ObservableObject {
         return result
     }
 
-    // MARK: - Actions
+    // MARK: - İşlemler
     func loadData() {
         isLoading = true
         errorMessage = nil

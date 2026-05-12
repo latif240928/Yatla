@@ -1,4 +1,7 @@
 import SwiftUI
+#if canImport(UIKit)
+import UIKit
+#endif
 
 extension Color {
     init(hex: String) {
@@ -25,5 +28,19 @@ extension Color {
             blue: Double(b) / 255,
             opacity: Double(a) / 255
         )
+    }
+
+    /// Resolves to different hex values in light vs dark interface style (system `ColorScheme`).
+    init(light lightHex: String, dark darkHex: String) {
+        #if canImport(UIKit)
+        self.init(
+            uiColor: UIColor { traits in
+                let hex = traits.userInterfaceStyle == .dark ? darkHex : lightHex
+                return UIColor(Color(hex: hex))
+            }
+        )
+        #else
+        self.init(hex: darkHex)
+        #endif
     }
 }

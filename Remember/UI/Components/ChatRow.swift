@@ -6,29 +6,46 @@ struct ChatRowView: View {
 
     var body: some View {
         HStack(spacing: 14) {
-            // Avatar
             ZStack {
                 Circle()
-                    .fill(AppColors.primary.opacity(0.2))
-                    .frame(width: 52, height: 52)
+                    .fill(
+                        LinearGradient(
+                            colors: [
+                                AppColors.primaryLight,
+                                AppColors.primaryLight.opacity(0.6)
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .frame(width: 54, height: 54)
                 Text(chat.participant.name.prefix(2).uppercased())
-                    .font(.system(size: 17, weight: .bold))
+                    .font(AppFonts.aestetico(size: 17, weight: .bold))
                     .foregroundColor(AppColors.primary)
             }
             .overlay(alignment: .topTrailing) {
                 if chat.unreadCount > 0 {
-                    Circle()
-                        .fill(AppColors.error)
-                        .frame(width: 10, height: 10)
-                        .offset(x: 2, y: -2)
+                    ZStack {
+                        Circle()
+                            .fill(AppColors.error)
+                            .frame(width: 18, height: 18)
+                        Text("\(min(chat.unreadCount, 99))")
+                            .font(.system(size: 10, weight: .bold))
+                            .foregroundColor(.white)
+                    }
+                    .overlay(
+                        Circle().stroke(AppColors.surface, lineWidth: 2)
+                    )
+                    .offset(x: 4, y: -4)
                 }
             }
 
             VStack(alignment: .leading, spacing: 4) {
                 Text(chat.participant.name)
                     .font(AppFonts.headline)
-                    .foregroundColor(.white)
-                Text(chat.lastMessage?.text ?? "")
+                    .foregroundColor(AppColors.textPrimary)
+                    .lineLimit(1)
+                Text(chat.lastMessage?.text ?? "Heniz habar ýok")
                     .font(AppFonts.subheadline)
                     .foregroundColor(AppColors.textSecondary)
                     .lineLimit(1)
@@ -37,26 +54,31 @@ struct ChatRowView: View {
             Spacer()
 
             VStack(alignment: .trailing, spacing: 6) {
-                Text(formatTime(chat.lastMessage?.sentAt ?? Date()))
-                    .font(AppFonts.caption2)
-                    .foregroundColor(AppColors.textHint)
+                if let last = chat.lastMessage {
+                    Text(AppDateFormatters.hourMinute.string(from: last.sentAt))
+                        .font(AppFonts.caption2)
+                        .foregroundColor(AppColors.textHint)
+                }
                 if chat.isMuted {
                     Image(systemName: "bell.slash.fill")
-                        .font(.system(size: 11))
+                        .font(.system(size: 11, weight: .medium))
                         .foregroundColor(AppColors.textHint)
                 }
             }
         }
         .padding(.horizontal, 16)
-        .padding(.vertical, 12)
-        .background(AppColors.surface)
-        .cornerRadius(14)
-        .overlay(RoundedRectangle(cornerRadius: 14).stroke(AppColors.divider, lineWidth: 1))
-    }
-
-    private func formatTime(_ date: Date) -> String {
-        let fmt = DateFormatter()
-        fmt.dateFormat = "HH:mm"
-        return fmt.string(from: date)
+        .padding(.vertical, 14)
+        // Köşe yuvarlaklığı 20'den → 24'e çıkarıldı, böylece satırlar daha
+        // yumuşak ve hap şeklinde görünüyor, özellikle yeni departman grubu kartlarının yanında.
+        .background(
+            RoundedRectangle(cornerRadius: 24)
+                .fill(AppColors.surface)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 24)
+                .stroke(AppColors.divider, lineWidth: 1)
+        )
+        .shadow(color: AppColors.shadowColor(opacity: 0.04), radius: 6, y: 2)
+        .contentShape(RoundedRectangle(cornerRadius: 24))
     }
 }

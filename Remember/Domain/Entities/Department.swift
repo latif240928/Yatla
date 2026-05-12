@@ -8,12 +8,11 @@
 // Domain/Entities/Department.swift
 import Foundation
 
-struct Department: Identifiable, Hashable, Codable {
+struct Department: Identifiable, Hashable, Codable, Sendable {
     let id: String
     var name: String
+    var createdAt: Date?
 
-
-static let sahsy = Department(id: "sahsy", name: "Şahsy")
-
+    static let sahsy = Department(id: "sahsy", name: "Şahsy")
 }
 

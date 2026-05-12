@@ -12,8 +12,12 @@ struct LogoutButton: View {
             }
             .foregroundColor(AppColors.error)
             .padding()
-            .background(AppColors.error.opacity(0.1))
+            .background(AppColors.error.opacity(0.08))
             .cornerRadius(12)
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(AppColors.error.opacity(0.2), lineWidth: 1)
+            )
         }
     }
 }

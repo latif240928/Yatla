@@ -1,58 +1,111 @@
+// UI/Components/LanguageMenu.swift
+//
+// Her Kimlik Doğrulama ekranının sağ üstünde kullanılan kompakt dil değiştirici.
+// Hapa dokunulduğunda, dört dilin ve tam adlarının açıkça görünebildiği
+// özel bir popover tarzı sayfa açılır — önceki `Menu` tabanlı uygulama,
+// her satırın metnini sistem menüsünün kendi arka planına karşı
+// `AppColors.textPrimary` ile işliyordu ve bu da iOS 17'de açık temalarda
+// etiketleri görünmez bırakıyordu.
+
 import SwiftUI
 
 struct LanguageMenu: View {
-    @Binding var selectedLanguage: String
-    
+    @EnvironmentObject private var container: DIContainer
+    @State private var isOpen: Bool = false
+
     var body: some View {
-        Menu {
-            Button("Türkmen") { selectedLanguage = "TM" }
-            Button("Türkçe")  { selectedLanguage = "TR" }
-            Button("Русский") { selectedLanguage = "RU" }
-            Button("English") { selectedLanguage = "EN" }
+        Button {
+            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+            isOpen.toggle()
         } label: {
-            Text(selectedLanguage)
-                .font(.headline)
-                .padding(.horizontal, 14)
-                .padding(.vertical, 6)
-                .background(Color.white.opacity(0.25))
-                .foregroundColor(.white)
-                .clipShape(Capsule())
+            HStack(spacing: 6) {
+                Text(container.appSettings.selectedLanguage.flag)
+                    .font(.system(size: 16))
+                Text(container.appSettings.selectedLanguage.menuCode)
+                    .font(AppFonts.aestetico(size: 13, weight: .semibold))
+                    .foregroundColor(AppColors.textPrimary)
+                Image(systemName: "chevron.down")
+                    .font(.system(size: 10, weight: .bold))
+                    .foregroundColor(AppColors.textSecondary)
+                    .rotationEffect(.degrees(isOpen ? 180 : 0))
+                    .animation(.easeInOut(duration: 0.18), value: isOpen)
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 7)
+            .background(
+                Capsule().fill(AppColors.surface)
+            )
+            .overlay(
+                Capsule().stroke(AppColors.divider, lineWidth: AppShape.Stroke.regular)
+            )
+            .shadow(color: AppColors.shadowColor(opacity: 0.06), radius: 6, y: 2)
         }
-        .padding(.top, 10)
-        .padding(.trailing, 20)
+        .buttonStyle(.plain)
+        .popover(isPresented: $isOpen, arrowEdge: .top) {
+            languageList
+                .presentationCompactAdaptation(.popover)
+        }
     }
-}
 
-
-
-
-struct StatefulPreviewWrapper<Value, Content: View>: View {
-    @State var value: Value
-    var content: (Binding<Value>) -> Content
-    
-    init(_ value: Value, content: @escaping (Binding<Value>) -> Content) {
-        self._value = State(wrappedValue: value)
-        self.content = content
-    }
-    
-    var body: some View {
-        content($value)
-    }
-}
-
-
-#Preview("Language Menu") {
-    StatefulPreviewWrapper("TM") { binding in
-        ZStack {
-            AppColors.background.ignoresSafeArea() 
-            
-            VStack {
-                HStack {
-                    Spacer()
-                    LanguageMenu(selectedLanguage: binding)
+    private var languageList: some View {
+        VStack(spacing: 0) {
+            ForEach(Language.allCases) { lang in
+                Button {
+                    container.persistLanguage(lang)
+                    isOpen = false
+                } label: {
+                    HStack(spacing: 12) {
+                        Text(lang.flag)
+                            .font(.system(size: 22))
+                            .frame(width: 30, height: 30)
+                            .background(AppColors.surfaceLight)
+                            .clipShape(Circle())
+                        VStack(alignment: .leading, spacing: 1) {
+                            // Tam okunabilir ad — daha önce sistem menüsünün
+                            // ön plan renk kuralları tarafından gizleniyordu.
+                            Text(lang.displayName)
+                                .font(AppFonts.body)
+                                .foregroundColor(AppColors.textPrimary)
+                            Text(lang.menuCode)
+                                .font(AppFonts.caption2)
+                                .foregroundColor(AppColors.textHint)
+                        }
+                        Spacer()
+                        if container.appSettings.selectedLanguage == lang {
+                            Image(systemName: "checkmark.circle.fill")
+                                .foregroundColor(AppColors.primary)
+                        }
+                    }
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 10)
+                    .frame(minWidth: 220)
+                    .contentShape(Rectangle())
                 }
-                Spacer()
+                .buttonStyle(.plain)
+
+                if lang != Language.allCases.last {
+                    Divider()
+                        .background(AppColors.divider)
+                        .padding(.leading, 56)
+                }
             }
         }
+        .padding(.vertical, 8)
+        .background(AppColors.surface)
     }
+}
+
+#Preview("Language Menu") {
+    ZStack {
+        AppColors.background.ignoresSafeArea()
+        VStack {
+            HStack {
+                Spacer()
+                LanguageMenu()
+                    .padding()
+            }
+            Spacer()
+        }
+    }
+    .environmentObject(DIContainer.shared)
 }

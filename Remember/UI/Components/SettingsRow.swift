@@ -9,24 +9,29 @@ struct SettingsRow: View {
     var body: some View {
         HStack(spacing: 12) {
             ZStack {
-                RoundedRectangle(cornerRadius: 8)
-                    .fill(color.opacity(0.2))
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(color.opacity(0.15))
                     .frame(width: 36, height: 36)
                 Image(systemName: icon)
-                    .font(.system(size: 16))
+                    .font(AppFonts.aestetico(size: 16))
                     .foregroundColor(color)
             }
             Text(title)
-                .font(AppFonts.body)
-                .foregroundColor(.white)
+                .font(AppFonts.title3.bold())
+                .foregroundColor(AppColors.textPrimary)
             Spacer()
             Image(systemName: "chevron.right")
-                .font(.system(size: 13, weight: .semibold))
+                .font(AppFonts.aestetico(size: 15, weight: .semibold))
                 .foregroundColor(AppColors.textSecondary)
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 12)
         .background(AppColors.surface)
-        .cornerRadius(12)
+        .cornerRadius(16)
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .stroke(AppColors.divider, lineWidth: 1)
+        )
+        .shadow(color: AppColors.shadowColor(opacity: 0.03), radius: 4, y: 2)
     }
 }

@@ -1,10 +1,10 @@
 // UI/Features/CreateTask/CreateTaskViewModel.swift
 import SwiftUI
 import Combine
- 
+
 @MainActor
 final class CreateTaskViewModel: ObservableObject {
- 
+
     @Published var createTask: CreateTask = CreateTask()
     @Published var departments: [Department] = []
     @Published var allUsers: [User] = []
@@ -14,18 +14,18 @@ final class CreateTaskViewModel: ObservableObject {
     @Published var newDepartmentName: String = ""
     @Published var showDepartmentPicker: Bool = false
     @Published var showUserPicker: Bool = false
- 
-    // MARK: - File
+
+    // MARK: - Dosya
     @Published var selectedFiles: [URL] = []
     @Published var showFilePicker: Bool = false
- 
+
     let currentUser = CurrentUserProvider.user
- 
+
     private let createTaskUseCase: CreateTaskUseCase
     private let getDepartmentsUseCase: GetDepartmentsUseCase
     private let createDepartmentUseCase: CreateDepartmentUseCase
     private let getUsersUseCase: GetUsersUseCase
- 
+
     init() {
         self.createTaskUseCase       = DIContainer.shared.createTaskUseCase
         self.getDepartmentsUseCase   = DIContainer.shared.getDepartmentsUseCase
@@ -33,7 +33,7 @@ final class CreateTaskViewModel: ObservableObject {
         self.getUsersUseCase         = DIContainer.shared.getUsersUseCase
         loadData()
     }
- 
+
     init(
         createTaskUseCase: CreateTaskUseCase,
         getDepartmentsUseCase: GetDepartmentsUseCase,
@@ -46,9 +46,9 @@ final class CreateTaskViewModel: ObservableObject {
         self.getUsersUseCase         = getUsersUseCase
         loadData()
     }
- 
+
     var isSahsy: Bool { createTask.department?.id == "sahsy" }
- 
+
     func loadData() {
         Task {
             do {
@@ -60,30 +60,30 @@ final class CreateTaskViewModel: ObservableObject {
             }
         }
     }
- 
+
     func addUser(_ user: User) {
         guard !selectedUsers.contains(where: { $0.id == user.id }) else { return }
         selectedUsers.append(user)
         createTask.assigneeIDs.append(user.id)
     }
- 
+
     func removeUser(_ user: User) {
         selectedUsers.removeAll { $0.id == user.id }
         createTask.assigneeIDs.removeAll { $0 == user.id }
     }
- 
+
     // MARK: - File işlemleri
     func addFile(_ url: URL) {
         guard !selectedFiles.contains(url) else { return }
         selectedFiles.append(url)
     }
- 
+
     func removeFile(_ url: URL) {
         withAnimation {
             selectedFiles.removeAll { $0 == url }
         }
     }
- 
+
     func addNewDepartment() {
         guard !newDepartmentName.isEmpty else { return }
         let name = newDepartmentName
@@ -99,17 +99,18 @@ final class CreateTaskViewModel: ObservableObject {
             }
         }
     }
- 
-    func createNewTask(onSuccess: @escaping () -> Void) {
+
+    // ✅ DÜZELTILDI: oluşturulan TaskItem callback ile geri döndürülüyor
+    func createNewTask(onSuccess: @escaping (TaskItem) -> Void) {
         if isSahsy { createTask.assigneeIDs = [currentUser.id] }
         guard createTask.isValid else { return }
         isLoading = true
         errorMessage = nil
         Task {
             do {
-                _ = try await createTaskUseCase.execute(createTask)
+                let newTask = try await createTaskUseCase.execute(createTask)
                 isLoading = false
-                onSuccess()
+                onSuccess(newTask)
             } catch {
                 isLoading = false
                 errorMessage = error.localizedDescription

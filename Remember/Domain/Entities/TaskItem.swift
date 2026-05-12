@@ -4,7 +4,7 @@ import Foundation
 
 
 
-struct TaskItem: Identifiable, Equatable{
+struct TaskItem: Identifiable, Equatable, Codable{
     let id: String
     var title: String
     var description: String      // Mazmuny
@@ -13,6 +13,7 @@ struct TaskItem: Identifiable, Equatable{
     let departmentId: String
     var assignees: [TaskAssignee]
     var assigneeIds: [String]    // Gosulan ulanyjylaryn id'leri
+    let creatorId: String
     let createdAt: Date
     var startDate: Date
     let dueDate: Date

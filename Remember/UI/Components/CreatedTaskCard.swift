@@ -1,111 +1,109 @@
 // UI/Components/CreatedTaskCard.swift
 import SwiftUI
 
-// MARK: - "İş döretmek" bölümi ucin task kardy
 struct CreatedTaskCard: View {
     let task: TaskItem
     var onTap: (() -> Void)? = nil
+    @EnvironmentObject private var container: DIContainer
+
+    private var lang: Language { container.appSettings.selectedLanguage }
 
     var body: some View {
         Button(action: { onTap?() }) {
             VStack(alignment: .leading, spacing: 0) {
-
-                // MARK: - Header + Chevron
                 HStack(alignment: .center) {
                     Text(task.title)
-                        .font(.system(size: 20, weight: .bold))
-                        .foregroundColor(.white)
+                        .font(AppFonts.title3)
+                        .foregroundColor(AppColors.textPrimary)
                         .lineLimit(2)
                     Spacer()
                     Image(systemName: "chevron.right")
-                        .font(.system(size: 15, weight: .semibold))
+                        .font(AppFonts.aestetico(size: 15, weight: .semibold))
                         .foregroundColor(AppColors.textSecondary)
                 }
                 .padding(.bottom, 12)
 
-                // MARK: - gok divider çyzgy
                 Rectangle()
-                    .fill(AppColors.primary.opacity(0.4))
+                    .fill(AppColors.primary)
                     .frame(height: 1)
                     .padding(.bottom, 12)
 
-                // MARK: - Description (italik)
-                Text(task.description.isEmpty ? "Mazmuny ýok" : task.description)
-                    .font(.system(size: 13, weight: .regular).italic())
+                Text(task.description.isEmpty ? L10n.string(.taskNoDescription, language: lang) : task.description)
+                    .font(AppFonts.taskDescription)
                     .foregroundColor(AppColors.textSecondary)
                     .multilineTextAlignment(.leading)
                     .lineSpacing(3)
                     .padding(.bottom, 14)
 
-                // MARK: - Ulanyjylar listi — hakyky maglumatlardan
                 if !task.assignees.isEmpty {
                     VStack(alignment: .leading, spacing: 6) {
                         ForEach(Array(task.assignees.prefix(3).enumerated()), id: \.element.id) { index, assignee in
                             HStack(spacing: 0) {
-                                // Cep: nomer + ulanyjy ady
-                                Text("\(index + 1).\(assignee.user.name)")
-                                    .font(.system(size: 14, weight: .regular))
-                                    .foregroundColor(.white)
-                                Spacer()
+                                Text("\(index + 1). \(assignee.user.name)")
+                                    .font(AppFonts.caption1)
+                                    .foregroundColor(AppColors.textPrimary)
+                                    .padding(.horizontal, 12)
                                 
                                 HStack(spacing: 6) {
                                     Circle()
                                         .fill(Color(hex: assignee.status.colorHex))
                                         .frame(width: 8, height: 8)
-                                    Text(assignee.status.displayName)
-                                        .font(.system(size: 13, weight: .regular))
-                                        .foregroundColor(.white)
+                                    Text(assignee.status.displayName(language: lang))
+                                        .font(AppFonts.caption1)
+                                        .foregroundColor(Color(hex: assignee.status.colorHex))
                                 }
                             }
                         }
                         if task.assignees.count > 3 {
                             Text("+\(task.assignees.count - 3) adam")
-                                .font(.system(size: 12))
+                                .font(AppFonts.caption1)
                                 .foregroundColor(AppColors.textHint)
                         }
                     }
                     .padding(.bottom, 14)
                 }
 
-                // MARK: - Date pill
-                HStack(spacing: 6) {
-                    Image(systemName: "clock")
-                        .font(.system(size: 12))
-                        .foregroundColor(AppColors.primary)
-                    Text(formatDateRange(start: task.startDate, end: task.dueDate))
-                        .font(.system(size: 12, weight: .regular))
-                        .foregroundColor(.white)
+                HStack {
+                    HStack(spacing: 6) {
+                        Image(systemName: "clock")
+                            .font(AppFonts.aestetico(size: 12))
+                            .foregroundColor(AppColors.primary)
+                        Text(formatDateRange(start: task.startDate, end: task.dueDate))
+                            .font(AppFonts.aestetico(size: 12))
+                            .foregroundColor(AppColors.textPrimary)
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 4)
+                    .overlay(Capsule().stroke(AppColors.primary, lineWidth: 1))
+
+                    Spacer()
+                    
+                    Text("\(task.number)")
+                        .font(AppFonts.statusText)
+                        .foregroundColor(AppColors.textPrimary)
                 }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 6)
-                .overlay(
-                    Capsule()
-                        .stroke(AppColors.primary.opacity(0.6), lineWidth: 1)
-                )
             }
             .padding(16)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(
-                RoundedRectangle(cornerRadius: 16)
+                RoundedRectangle(cornerRadius: 20)
                     .fill(AppColors.surface)
             )
             .overlay(
-                RoundedRectangle(cornerRadius: 16)
-                    .stroke(AppColors.primary.opacity(0.25), lineWidth: 1)
+                RoundedRectangle(cornerRadius: 20)
+                    .stroke(AppColors.divider, lineWidth: 1)
             )
+            .shadow(color: AppColors.shadowColor(opacity: 0.04), radius: 8, y: 4)
         }
         .buttonStyle(.plain)
     }
 
-    // MARK: - Date format: 09.02.2026r
     private func formatDateRange(start: Date, end: Date) -> String {
-        let fmt = DateFormatter()
-        fmt.dateFormat = "dd.MM.yyyy"
-        return "\(fmt.string(from: start)) - \(fmt.string(from: end))"
+        let f = AppDateFormatters.dayMonthYearDot
+        return "\(f.string(from: start)) - \(f.string(from: end))"
     }
 }
 
-// MARK: - Preview
 #Preview {
     ScrollView {
         VStack(spacing: 16) {
@@ -116,5 +114,4 @@ struct CreatedTaskCard: View {
         .padding(16)
     }
     .background(AppColors.background)
-    .preferredColorScheme(.dark)
 }

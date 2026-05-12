@@ -17,14 +17,12 @@ final class CreateTasksViewModel: ObservableObject {
 
     let currentUserId = CurrentUserProvider.user.id
 
-    
     init() {
         self.getTasksUseCase       = DIContainer.shared.getTasksUseCase
         self.getDepartmentsUseCase = DIContainer.shared.getDepartmentsUseCase
         loadData()
     }
 
- 
     init(
         getTasksUseCase: GetTasksUseCase,
         getDepartmentsUseCase: GetDepartmentsUseCase
@@ -35,7 +33,7 @@ final class CreateTasksViewModel: ObservableObject {
     }
 
     var filteredTasks: [TaskItem] {
-        let myTasks = tasks.filter { $0.departmentId != "sahsy" }
+        let myTasks = tasks.filter { $0.assigneeIds.contains(currentUserId) }
         guard let dept = selectedDepartment else { return myTasks }
         return myTasks.filter { $0.departmentId == dept.id }
     }
@@ -51,6 +49,11 @@ final class CreateTasksViewModel: ObservableObject {
                 print("CreateTasksViewModel error: \(error)")
             }
         }
+    }
+
+    //  Yeni task'ı network çağrısı olmadan direkt listeye ekle
+    func addTask(_ task: TaskItem) {
+        tasks.insert(task, at: 0)
     }
 
     func refresh() { loadData() }

@@ -1,30 +1,63 @@
 // UI/DesignSystem/Fonts/AppFonts.swift
 import SwiftUI
+import UIKit
 
 struct AppFonts {
+    private enum Aestetico {
+        static let regular = "Aestetico-Regular"
+        static let medium = "Aestetico-Medium"
+        static let semibold = "Aestetico-Semibold"
+        static let bold = "Aestetico-Bold"
+    }
+    
+    private static func custom(_ fontName: String, size: CGFloat, fallbackWeight: Font.Weight) -> Font {
+        if UIFont(name: fontName, size: size) != nil {
+            return .custom(fontName, size: size)
+        }
+        return .system(size: size, weight: fallbackWeight)
+    }
+    
+    static func aestetico(size: CGFloat, weight: Font.Weight = .regular) -> Font {
+        let fontName: String
+        switch weight {
+        case .bold, .heavy, .black:
+            fontName = Aestetico.bold
+        case .semibold:
+            fontName = Aestetico.semibold
+        case .medium:
+            fontName = Aestetico.medium
+        default:
+            fontName = Aestetico.regular
+        }
+        
+        return custom(fontName, size: size, fallbackWeight: weight)
+    }
+    
     // MARK: Headlines
-    static let largeTitle = Font.system(size: 34, weight: .bold)
-    static let title1 = Font.custom("SFProDisplay-Bold", size: 28)
-    static let title2 = Font.custom("SFProDisplay-Semibold", size: 22)
-    static let title3 = Font.custom("SFProDisplay-Semibold", size: 20)
+    static let largeTitle = custom(Aestetico.bold, size: 34, fallbackWeight: .bold)
+    static let title1 = custom(Aestetico.bold, size: 28, fallbackWeight: .bold)
+    static let title2 = custom(Aestetico.semibold, size: 22, fallbackWeight: .semibold)
+    static let deptitle = custom(Aestetico.bold, size: 23, fallbackWeight: .bold)
+    static let title3 = custom(Aestetico.bold, size: 18, fallbackWeight: .bold)
     
     // MARK: Body
-    static let headline = Font.custom("SFProText-Semibold", size: 17)
-    static let body = Font.custom("SFProText-Regular", size: 17)
-    static let callout = Font.custom("SFProText-Regular", size: 16)
-    static let subheadline = Font.custom("SFProText-Regular", size: 15)
-    static let footnote = Font.custom("SFProText-Regular", size: 13)
-    static let caption1 = Font.custom("SFProText-Regular", size: 12)
-    static let caption2 = Font.custom("SFProText-Regular", size: 11)
+    static let headline = custom(Aestetico.semibold, size: 17, fallbackWeight: .semibold)
+    static let body = custom(Aestetico.regular, size: 17, fallbackWeight: .regular)
+    static let callout = custom(Aestetico.regular, size: 16, fallbackWeight: .regular)
+    static let subheadline = custom(Aestetico.bold, size: 14, fallbackWeight: .bold)
+    static let footnote = custom(Aestetico.regular, size: 13, fallbackWeight: .regular)
+    static let caption1 = custom(Aestetico.regular, size: 12, fallbackWeight: .regular)
+    static let caption2 = custom(Aestetico.regular, size: 11, fallbackWeight: .regular)
+    static let caption3 = custom(Aestetico.bold, size: 11, fallbackWeight: .bold)
     
     // MARK: Custom for your app
-    static let taskName = Font.custom("SFProDisplay-Medium", size: 16)
-    static let taskDescription = Font.custom("SFProText-Regular", size: 14)
-    static let departmentName = Font.custom("SFProText-Medium", size: 14)
-    static let statusText = Font.custom("SFProText-Semibold", size: 12)
+    static let taskName = custom(Aestetico.medium, size: 16, fallbackWeight: .medium)
+    static let taskDescription = custom(Aestetico.regular, size: 14, fallbackWeight: .regular)
+    static let departmentName = custom(Aestetico.medium, size: 14, fallbackWeight: .medium)
+    static let statusText = custom(Aestetico.semibold, size: 18, fallbackWeight: .semibold)
 }
 
-// MARK: - Convenience Extension
+// MARK: - Kolaylık uzantısı
 extension Font {
     static let appLargeTitle = AppFonts.largeTitle
     static let appTitle1 = AppFonts.title1

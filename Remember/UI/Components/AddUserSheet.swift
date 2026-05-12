@@ -1,100 +1,76 @@
-//UI/Features/Users/Components/AddUserSheet
+// UI/Components/AddUserSheet.swift
+//
+// Yeni kullanıcı davet etmek için alt sayfa. ChatsView ve UsersView
+// tarafından `.sheet(isPresented:)` ile aynı şekilde kullanılır.
+// Görünüm kasıtlı olarak düz bir içerik gövdesidir — `.sheet` zaten
+// karartma katmanını ve kapatma hareketini sağlar, bu yüzden iç içe
+// `ZStack { AppColors.overlay … }` olmamalıdır.
 import SwiftUI
 
 struct AddUserSheet: View {
     @Binding var isPresented: Bool
     let departments: [Department]
     var onInvite: ((String, String, Department) -> Void)?
+    @EnvironmentObject private var container: DIContainer
 
     @State private var name: String = ""
     @State private var phone: String = ""
     @State private var selectedDepartment: Department? = nil
     @State private var showDeptPicker: Bool = false
+    @FocusState private var focusedField: Field?
+
+    private var lang: Language { container.appSettings.selectedLanguage }
+
+    private enum Field { case name, phone }
 
     var isValid: Bool {
-        !name.isEmpty && !phone.isEmpty && selectedDepartment != nil
+        !name.trimmingCharacters(in: .whitespaces).isEmpty
+            && !phone.trimmingCharacters(in: .whitespaces).isEmpty
+            && selectedDepartment != nil
     }
 
     var body: some View {
-        ZStack {
-            AppColors.background.opacity(0.6)
-                .ignoresSafeArea()
-                .onTapGesture { isPresented = false }
+        VStack(spacing: 0) {
+            SheetGrabber(bottomPadding: 16)
 
-            VStack(spacing: 20) {
-                Text("Ulanyjy goşmak")
-                    .font(AppFonts.title3)
-                    .foregroundColor(.white)
+            Text(L10n.string(.addUserTitle, language: lang))
+                .font(AppFonts.title3)
+                .foregroundColor(AppColors.textPrimary)
+                .padding(.top, 4)
+                .padding(.bottom, 20)
 
-                // At
-                TextField("Ulanyjy ady", text: $name)
-                    .font(AppFonts.body)
-                    .foregroundColor(.white)
-                    .padding(14)
-                    .background(AppColors.surface)
-                    .cornerRadius(10)
-                    .overlay(RoundedRectangle(cornerRadius: 10).stroke(AppColors.divider, lineWidth: 1))
+            VStack(spacing: 12) {
+                inputField(
+                    placeholder: L10n.string(.addUserName, language: lang),
+                    text: $name,
+                    field: .name,
+                    keyboard: .default
+                )
 
-                // Telefon
-                TextField("Telefon nomery", text: $phone)
-                    .font(AppFonts.body)
-                    .foregroundColor(.white)
-                    .keyboardType(.phonePad)
-                    .padding(14)
-                    .background(AppColors.surface)
-                    .cornerRadius(10)
-                    .overlay(RoundedRectangle(cornerRadius: 10).stroke(AppColors.divider, lineWidth: 1))
+                inputField(
+                    placeholder: L10n.string(.addUserPhone, language: lang),
+                    text: $phone,
+                    field: .phone,
+                    keyboard: .phonePad
+                )
 
-                // Department saylayjy
-                Button(action: { showDeptPicker = true }) {
-                    HStack {
-                        Text(selectedDepartment?.name ?? "Iş bölümi saýlamak")
-                            .font(AppFonts.body)
-                            .foregroundColor(selectedDepartment != nil ? .white : AppColors.textHint)
-                        Spacer()
-                        Image(systemName: "chevron.right")
-                            .foregroundColor(AppColors.textSecondary)
-                    }
-                    .padding(14)
-                    .background(AppColors.surface)
-                    .cornerRadius(10)
-                    .overlay(RoundedRectangle(cornerRadius: 10).stroke(AppColors.divider, lineWidth: 1))
-                }
+                departmentPickerRow
+            }
+            .padding(.horizontal, 20)
 
-                // Buttonlar
-                HStack(spacing: 12) {
-                    Button(action: { isPresented = false }) {
-                        Text("Yza çykmak")
-                            .font(AppFonts.headline)
-                            .foregroundColor(.white)
-                            .frame(maxWidth: .infinity)
-                            .frame(height: 48)
-                            .background(RoundedRectangle(cornerRadius: 12).fill(AppColors.surfaceLight))
-                    }
+            Spacer(minLength: 16)
 
-                    Button(action: {
-                        guard let dept = selectedDepartment else { return }
-                        onInvite?(name, phone, dept)
-                        isPresented = false
-                    }) {
-                        Text("Çagyrmak")
-                            .font(AppFonts.headline)
-                            .foregroundColor(.white)
-                            .frame(maxWidth: .infinity)
-                            .frame(height: 48)
-                            .background(
-                                RoundedRectangle(cornerRadius: 12)
-                                    .fill(isValid ? AppColors.success : AppColors.buttonDisabled)
-                            )
-                    }
-                    .disabled(!isValid)
+            HStack(spacing: 12) {
+                SheetOutlineActionButton(title: L10n.string(.addUserCancel, language: lang)) { isPresented = false }
+
+                SheetGradientActionButton(title: L10n.string(.addUserInvite, language: lang), isEnabled: isValid) {
+                    handleInvite()
                 }
             }
-            .padding(24)
-            .background(RoundedRectangle(cornerRadius: 20).fill(AppColors.surface))
-            .overlay(RoundedRectangle(cornerRadius: 20).stroke(AppColors.primary.opacity(0.3), lineWidth: 1))
-            .padding(.horizontal, 24)
+            .padding(.horizontal, AppSpacing.l)
+            .padding(.bottom, AppSpacing.xl)
         }
+        .background(AppColors.surface.ignoresSafeArea())
         .sheet(isPresented: $showDeptPicker) {
             DepartmentPickerMini(
                 departments: departments,
@@ -102,27 +78,85 @@ struct AddUserSheet: View {
                 isPresented: $showDeptPicker
             )
             .presentationDetents([.medium])
-            .preferredColorScheme(.dark)
         }
     }
-}
 
-#Preview("Filled") {
-    AddUserSheetPreviewFilledWrapper()
-}
+    // MARK: - Alt görünümler
 
-private struct AddUserSheetPreviewFilledWrapper: View {
-    @State private var isPresented: Bool = true
-
-    var body: some View {
-        AddUserSheet(
-            isPresented: $isPresented,
-            departments: [
-                Department(id: "1", name: "iOS Team")
-            ],
-            onInvite: { _,_,_ in }
-        )
-        .background(AppColors.background)
-        .preferredColorScheme(.dark)
+    private func inputField(
+        placeholder: String,
+        text: Binding<String>,
+        field: Field,
+        keyboard: UIKeyboardType
+    ) -> some View {
+        TextField(placeholder, text: text)
+            .font(AppFonts.body)
+            .foregroundColor(AppColors.textPrimary)
+            .keyboardType(keyboard)
+            .focused($focusedField, equals: field)
+            .padding(14)
+            .background(AppColors.surfaceLight)
+            .clipShape(AppShape.inputShape)
+            .overlay(
+                AppShape.inputShape
+                    .stroke(
+                        focusedField == field ? AppColors.borderFocused : AppColors.divider,
+                        lineWidth: focusedField == field ? AppShape.Stroke.focused : AppShape.Stroke.regular
+                    )
+            )
+            .animation(.easeInOut(duration: 0.18), value: focusedField)
     }
+
+    private var departmentPickerRow: some View {
+        Button(action: { showDeptPicker = true }) {
+            HStack {
+                Text(selectedDepartment?.name ?? L10n.string(.addUserDeptSelect, language: lang))
+                    .font(AppFonts.body)
+                    .foregroundColor(
+                        selectedDepartment != nil
+                        ? AppColors.textPrimary
+                        : AppColors.textHint
+                    )
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundColor(AppColors.textSecondary)
+            }
+            .padding(14)
+            .background(AppColors.surfaceLight)
+            .clipShape(AppShape.inputShape)
+            .overlay(
+                AppShape.inputShape
+                    .stroke(AppColors.divider, lineWidth: AppShape.Stroke.regular)
+            )
+        }
+        .buttonStyle(.plain)
+    }
+
+    // MARK: - İşlemler
+
+    private func handleInvite() {
+        guard let dept = selectedDepartment else { return }
+        onInvite?(
+            name.trimmingCharacters(in: .whitespaces),
+            phone.trimmingCharacters(in: .whitespaces),
+            dept
+        )
+        isPresented = false
+    }
+}
+
+#Preview("AddUserSheet") {
+    Color.black.opacity(0.3)
+        .sheet(isPresented: .constant(true)) {
+            AddUserSheet(
+                isPresented: .constant(true),
+                departments: [
+                    Department(id: "dept-1", name: "iOS Team"),
+                    Department(id: "dept-2", name: "Backend")
+                ],
+                onInvite: { _, _, _ in }
+            )
+            .presentationDetents([.medium, .large])
+        }
 }

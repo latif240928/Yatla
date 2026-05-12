@@ -1,58 +1,67 @@
 // UI/Features/CreateTasks/CreateTasksView.swift
 import SwiftUI
 
-/// Tab 2 — "Iş döretmek" bölümü
+enum ActivePicker: String, Identifiable, CaseIterable {
+    case date, time
+    var id: String { rawValue }
+
+    func title(language: Language) -> String {
+        switch self {
+        case .date: return L10n.string(.createTaskDate, language: language)
+        case .time: return L10n.string(.createTaskTime, language: language)
+        }
+    }
+}
+
 struct CreateTasksView: View {
     var onTaskTap: ((TaskItem) -> Void)?
     var onRefresh: (() -> Void)?
+    var onTaskCreated: (() -> Void)?
 
+    @EnvironmentObject private var container: DIContainer
     @StateObject private var viewModel = CreateTasksViewModel()
+    @State private var activePicker: ActivePicker? = nil
+    @State private var pickerDate: Date = Date()
+
+    private var lang: Language { container.appSettings.selectedLanguage }
 
     var body: some View {
         ZStack {
+            AppColors.background.ignoresSafeArea()
+            
             VStack(spacing: 0) {
-                // AppBar
                 HStack {
-                    Text("Iş döretmek")
-                        .font(AppFonts.title2)
-                        .foregroundColor(.white)
+                    Text(L10n.string(.myTasksTitle, language: lang))
+                        .font(AppFonts.largeTitle)
+                        .foregroundColor(AppColors.textPrimary)
 
                     Spacer()
 
-                    Button(action: { viewModel.showDepartmentPicker = true }) {
-                        HStack(spacing: 4) {
-                            Text(viewModel.selectedDepartment?.name ?? "Hemmesi")
-                                .font(AppFonts.subheadline)
-                                .foregroundColor(.white)
-                            Image(systemName: "chevron.down")
+                    FilterChipButton(
+                        title: viewModel.selectedDepartment?.name ?? L10n.string(.deptPickerAll, language: lang),
+                        size: .regular,
+                        leading: {
+                            Image(systemName: "briefcase.fill")
                                 .font(.system(size: 11, weight: .semibold))
-                                .foregroundColor(AppColors.textSecondary)
-                        }
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 8)
-                        .background(AppColors.surface)
-                        .cornerRadius(8)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 8)
-                                .stroke(AppColors.divider, lineWidth: 1)
-                        )
-                    }
+                                .foregroundColor(AppColors.primary)
+                        },
+                        action: { viewModel.showDepartmentPicker = true }
+                    )
                 }
                 .padding(.horizontal, 16)
                 .padding(.top, 16)
                 .padding(.bottom, 12)
 
-                // Task listi
                 if viewModel.filteredTasks.isEmpty {
                     Spacer()
                     VStack(spacing: 12) {
                         Image(systemName: "doc.text")
-                            .font(.system(size: 48))
+                            .font(AppFonts.aestetico(size: 48))
                             .foregroundColor(AppColors.textHint)
-                        Text("Heniz iş ýok")
+                        Text(L10n.string(.myTasksEmpty, language: lang))
                             .font(AppFonts.body)
                             .foregroundColor(AppColors.textSecondary)
-                        Text("Täze iş döretmek üçin + basyň")
+                        Text(L10n.string(.myTasksEmptyHint, language: lang))
                             .font(AppFonts.caption1)
                             .foregroundColor(AppColors.textHint)
                     }
@@ -73,46 +82,22 @@ struct CreateTasksView: View {
                 }
             }
 
-            // '+' button
-            VStack {
-                Spacer()
-                HStack {
-                    Spacer()
-                    Button(action: { viewModel.showCreateTask = true }) {
-                        Image(systemName: "plus")
-                            .font(.system(size: 24, weight: .semibold))
-                            .foregroundColor(.white)
-                            .frame(width: 56, height: 56)
-                            .background(
-                                Circle()
-                                    .fill(
-                                        LinearGradient(
-                                            colors: [AppColors.primary, AppColors.primaryDark],
-                                            startPoint: .topLeading,
-                                            endPoint: .bottomTrailing
-                                        )
-                                    )
-                            )
-                            .shadow(color: AppColors.primary.opacity(0.4), radius: 12, y: 4)
-                    }
-                    .padding(.trailing, 20)
-                    .padding(.bottom, 8)
-                }
+            FloatingActionButton(systemImage: "plus") {
+                viewModel.showCreateTask = true
             }
         }
         .sheet(item: $viewModel.selectedTask) { task in
             TaskDetailView(task: task)
                 .presentationDetents([.large])
-                .preferredColorScheme(.dark)
         }
         .sheet(isPresented: $viewModel.showCreateTask) {
-            CreateTaskView(onTaskCreated: {
+            CreateTaskView(onTaskCreated: { newTask in
+                viewModel.addTask(newTask)
                 viewModel.showCreateTask = false
-                viewModel.loadData()
                 onRefresh?()
+                onTaskCreated?()
             })
             .presentationDetents([.large])
-            .preferredColorScheme(.dark)
         }
         .sheet(isPresented: $viewModel.showDepartmentPicker) {
             DepartmentPickerMini(
@@ -120,74 +105,70 @@ struct CreateTasksView: View {
                 selectedDepartment: $viewModel.selectedDepartment,
                 isPresented: $viewModel.showDepartmentPicker
             )
-            .presentationDetents([.medium])
-            .preferredColorScheme(.dark)
+            .presentationDetents([.medium, .large])
+            .presentationDragIndicator(.hidden)
         }
     }
 }
 
-// MARK: - Mini Department Picker
 struct DepartmentPickerMini: View {
     let departments: [Department]
     @Binding var selectedDepartment: Department?
     @Binding var isPresented: Bool
+    @EnvironmentObject private var container: DIContainer
+
+    private var lang: Language { container.appSettings.selectedLanguage }
 
     var body: some View {
         VStack(spacing: 0) {
+            SheetGrabber()
+
             HStack {
-                Text("Bölüm saýlaň")
+                Text(L10n.string(.deptPickerTitle, language: lang))
                     .font(AppFonts.title3)
-                    .foregroundColor(.white)
+                    .foregroundColor(AppColors.textPrimary)
                 Spacer()
             }
-            .padding(20)
+            .padding(.horizontal, 20)
+            .padding(.top, 8)
+            .padding(.bottom, 12)
 
             Divider().background(AppColors.divider)
 
             ScrollView {
                 VStack(spacing: 0) {
-                    Button(action: {
+                    SheetCheckmarkOptionRow(
+                        leading: .none,
+                        title: L10n.string(.deptPickerAll, language: lang),
+                        horizontalInset: 20,
+                        isSelected: selectedDepartment == nil
+                    ) {
                         selectedDepartment = nil
                         isPresented = false
-                    }) {
-                        HStack {
-                            Text("Hemmesi")
-                                .font(AppFonts.body).foregroundColor(.white)
-                            Spacer()
-                            if selectedDepartment == nil {
-                                Image(systemName: "checkmark").foregroundColor(AppColors.primary)
-                            }
-                        }
-                        .padding(.horizontal, 20).padding(.vertical, 14)
                     }
 
                     ForEach(departments) { dept in
-                        Divider().background(AppColors.divider).padding(.horizontal, 20)
-                        Button(action: {
+                        SheetInsetDivider(horizontalInset: 20)
+
+                        SheetCheckmarkOptionRow(
+                            leading: .none,
+                            title: dept.name,
+                            titleFont: AppFonts.headline,
+                            horizontalInset: 20,
+                            isSelected: selectedDepartment?.id == dept.id
+                        ) {
                             selectedDepartment = dept
                             isPresented = false
-                        }) {
-                            HStack {
-                                Text(dept.name)
-                                    .font(AppFonts.body).foregroundColor(.white)
-                                Spacer()
-                                if selectedDepartment?.id == dept.id {
-                                    Image(systemName: "checkmark").foregroundColor(AppColors.primary)
-                                }
-                            }
-                            .padding(.horizontal, 20).padding(.vertical, 14)
                         }
                     }
                 }
             }
         }
-        .background(AppColors.surface)
+        .background(AppColors.surface.ignoresSafeArea())
     }
 }
 
-// MARK: - Preview
 #Preview {
     CreateTasksView()
         .background(AppColors.background)
-        .preferredColorScheme(.dark)
 }

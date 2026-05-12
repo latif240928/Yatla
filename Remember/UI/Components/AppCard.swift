@@ -8,6 +8,8 @@ struct AppCard<Content: View>: View {
     var background: Color = AppColors.surface
     var borderColor: Color = AppColors.divider
     var borderWidth: CGFloat = 1
+    var shadowRadius: CGFloat = 4
+    var shadowOpacity: Double = 0.04
     
     init(
         cornerRadius: CGFloat = 16,
@@ -15,6 +17,8 @@ struct AppCard<Content: View>: View {
         background: Color = AppColors.surface,
         borderColor: Color = AppColors.divider,
         borderWidth: CGFloat = 1,
+        shadowRadius: CGFloat = 4,
+        shadowOpacity: Double = 0.04,
         @ViewBuilder content: () -> Content
     ) {
         self.cornerRadius = cornerRadius
@@ -22,6 +26,8 @@ struct AppCard<Content: View>: View {
         self.background = background
         self.borderColor = borderColor
         self.borderWidth = borderWidth
+        self.shadowRadius = shadowRadius
+        self.shadowOpacity = shadowOpacity
         self.content = content()
     }
     
@@ -35,6 +41,11 @@ struct AppCard<Content: View>: View {
             .overlay(
                 RoundedRectangle(cornerRadius: cornerRadius)
                     .stroke(borderColor, lineWidth: borderWidth)
+            )
+            .shadow(
+                color: AppColors.shadowColor(opacity: shadowOpacity),
+                radius: shadowRadius,
+                y: 2
             )
     }
 }

@@ -1,96 +1,63 @@
 // UI/Components/StatusSheet.swift
 import SwiftUI
 
-/// Status/Process popup
 struct StatusSheet: View {
     @Binding var selectedStatus: TaskStatus?
     @Binding var isPresented: Bool
+    @EnvironmentObject private var container: DIContainer
+
+    private var lang: Language { container.appSettings.selectedLanguage }
 
     var body: some View {
         VStack(spacing: 0) {
-            // Header
+            SheetGrabber()
+
             HStack {
-                Text("Durum")
+                Text(L10n.string(.status, language: lang))
                     .font(AppFonts.title3)
-                    .foregroundColor(.white)
+                    .foregroundColor(AppColors.textPrimary)
                 Spacer()
             }
             .padding(.horizontal, 20)
-            .padding(.top, 20)
+            .padding(.top, 8)
             .padding(.bottom, 12)
 
-            Divider()
-                .background(AppColors.divider)
+            Divider().background(AppColors.divider)
 
-            // "Hemmesi"
-            Button(action: {
+            SheetCheckmarkOptionRow(
+                leading: .statusDot(AppColors.textSecondary),
+                title: L10n.string(.deptPickerAll, language: lang),
+                horizontalInset: 20,
+                isSelected: selectedStatus == nil
+            ) {
                 selectedStatus = nil
                 isPresented = false
-            }) {
-                HStack {
-                    Circle()
-                        .fill(AppColors.textSecondary)
-                        .frame(width: 10, height: 10)
-                    Text("Hemmesi")
-                        .font(AppFonts.body)
-                        .foregroundColor(.white)
-                    Spacer()
-                    if selectedStatus == nil {
-                        Image(systemName: "checkmark")
-                            .foregroundColor(AppColors.primary)
-                    }
-                }
-                .padding(.horizontal, 20)
-                .padding(.vertical, 14)
             }
 
-            Divider().background(AppColors.divider).padding(.horizontal, 20)
+            SheetInsetDivider(horizontalInset: 20)
 
-            // Ahli yagdaylar
             ForEach(TaskStatus.allCases, id: \.self) { status in
-                Button(action: {
+                SheetCheckmarkOptionRow(
+                    leading: .statusDot(status.color),
+                    title: status.displayName(language: lang),
+                    horizontalInset: 20,
+                    isSelected: selectedStatus == status
+                ) {
                     selectedStatus = status
                     isPresented = false
-                }) {
-                    HStack {
-                        Circle()
-                            .fill(status.color)
-                            .frame(width: 10, height: 10)
-                        Text(status.displayName)
-                            .font(AppFonts.body)
-                            .foregroundColor(.white)
-                        Spacer()
-                        if selectedStatus == status {
-                            Image(systemName: "checkmark")
-                                .foregroundColor(AppColors.primary)
-                        }
-                    }
-                    .padding(.horizontal, 20)
-                    .padding(.vertical, 14)
                 }
 
                 if status != TaskStatus.allCases.last {
-                    Divider().background(AppColors.divider).padding(.horizontal, 20)
+                    SheetInsetDivider(horizontalInset: 20)
                 }
             }
 
-            // Yza çykmak
-            Button(action: { isPresented = false }) {
-                Text("Ýap")
-                    .font(AppFonts.headline)
-                    .foregroundColor(.white)
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 48)
-                    .background(
-                        RoundedRectangle(cornerRadius: 12)
-                            .fill(AppColors.surfaceLight)
-                    )
-            }
-            .padding(.horizontal, 20)
-            .padding(.vertical, 12)
+            Spacer(minLength: 12)
+
+            SheetOutlineActionButton(title: L10n.string(.actionClose, language: lang)) { isPresented = false }
+                .padding(.horizontal, AppSpacing.l)
+                .padding(.bottom, AppSpacing.l)
         }
-        .background(AppColors.surface)
-        .cornerRadius(20)
-        .preferredColorScheme(.dark)
+        .background(AppColors.surface.ignoresSafeArea())
     }
 }

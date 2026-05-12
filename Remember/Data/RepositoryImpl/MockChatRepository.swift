@@ -79,14 +79,62 @@ final class MockChatRepository: ChatRepository {
     func getChats(for userId: String) async -> [Chat] { chats }
     func getGroupChats(for userId: String) async -> [GroupChat] { groupChats }
 
+    func messages(forChatId chatId: String) async -> [ChatMessage] {
+        chats.first(where: { $0.id == chatId })?.messages ?? []
+    }
+
+    func messages(forGroupChatId groupChatId: String) async -> [ChatMessage] {
+        groupChats.first(where: { $0.id == groupChatId })?.messages ?? []
+    }
+
     func sendMessage(chatId: String, message: ChatMessage) async {
         if let i = chats.firstIndex(where: { $0.id == chatId }) {
             chats[i].messages.append(message)
         }
     }
 
+    func sendGroupMessage(groupChatId: String, text: String, sender: User) async -> ChatMessage? {
+        let message = ChatMessage(
+            id: UUID().uuidString,
+            sender: sender,
+            text: text,
+            sentAt: Date(),
+            isRead: false
+        )
+        if let i = groupChats.firstIndex(where: { $0.id == groupChatId }) {
+            groupChats[i].messages.append(message)
+        }
+        return message
+    }
+
+    func markAsRead(chatId: String) async {
+        if let i = chats.firstIndex(where: { $0.id == chatId }) {
+            chats[i].messages = chats[i].messages.map {
+                var copy = $0; copy.isRead = true; return copy
+            }
+            chats[i].serverUnreadCount = 0
+        }
+        if let j = groupChats.firstIndex(where: { $0.id == chatId }) {
+            groupChats[j].messages = groupChats[j].messages.map {
+                var copy = $0; copy.isRead = true; return copy
+            }
+            groupChats[j].serverUnreadCount = 0
+        }
+    }
+
+    func openChat(withParticipantId participantId: String) async -> Chat? {
+        if let existing = chats.first(where: { $0.participant.id == participantId }) {
+            return existing
+        }
+        let participant = User(id: participantId, name: "Yeni Sohbet", phone: "")
+        let chat = Chat(id: "mock-chat-\(participantId)", participant: participant, messages: [])
+        chats.append(chat)
+        return chat
+    }
+
     func deleteChat(id: String) async {
         chats.removeAll { $0.id == id }
+        groupChats.removeAll { $0.id == id }
     }
 
     func muteChat(id: String) async {

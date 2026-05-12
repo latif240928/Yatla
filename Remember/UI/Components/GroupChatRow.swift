@@ -6,13 +6,12 @@ struct GroupChatRowView: View {
 
     var body: some View {
         HStack(spacing: 14) {
-            // Avatar
             ZStack(alignment: .bottomTrailing) {
                 Circle()
-                    .fill(AppColors.surfaceLight)
+                    .fill(AppColors.primaryLight)
                     .frame(width: 52, height: 52)
                 Image(systemName: "person.3.fill")
-                    .font(.system(size: 20))
+                    .font(AppFonts.aestetico(size: 20))
                     .foregroundColor(AppColors.primary)
                     .frame(width: 52, height: 52)
 
@@ -27,7 +26,7 @@ struct GroupChatRowView: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text(group.department.name)
                     .font(AppFonts.headline)
-                    .foregroundColor(.white)
+                    .foregroundColor(AppColors.textPrimary)
                 Text("\(group.members.count) people")
                     .font(AppFonts.subheadline)
                     .foregroundColor(AppColors.textSecondary)
@@ -42,8 +41,12 @@ struct GroupChatRowView: View {
         .padding(.horizontal, 16)
         .padding(.vertical, 12)
         .background(AppColors.surface)
-        .cornerRadius(14)
-        .overlay(RoundedRectangle(cornerRadius: 14).stroke(AppColors.divider, lineWidth: 1))
+        .cornerRadius(16)
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .stroke(AppColors.divider, lineWidth: 1)
+        )
+        .shadow(color: AppColors.shadowColor(opacity: 0.04), radius: 4, y: 2)
     }
 
     private func formatTime(_ date: Date) -> String {

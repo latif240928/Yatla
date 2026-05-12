@@ -34,6 +34,13 @@ final class RegistrationViewModel: ObservableObject {
             do {
                 try await sendOTPUseCase.execute(phone: fullPhoneNumber)
                 isLoading = false
+
+                // Telefon numarasını sakla; böylece ayarlar sekmesi, kaydın
+                // geri kalanı tamamlanmadan önce bile bunu gösterebilir. Bu,
+                // OTP doğrulanmadan önce arka uçta "oturum taslağı"nın
+                // çalışma şeklini yansıtır.
+                UserDefaults.standard.set(fullPhoneNumber, forKey: "profile_phone")
+
                 router.navigateToSMS(phoneNumber: fullPhoneNumber)
             } catch {
                 isLoading = false

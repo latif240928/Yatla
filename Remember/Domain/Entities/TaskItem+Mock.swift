@@ -18,10 +18,27 @@ extension TaskItem {
                 TaskAssignee(id: "a3", user: User(id: "u3", name: "Haljanow Haknazar", phone: "+99362000003"), status: .inProgress),
             ],
             assigneeIds: ["current-user", "u1", "u2", "u3"], // ✅ current-user eklendi
+            creatorId: "current-user",
             createdAt: Calendar.current.date(from: DateComponents(year: 2026, month: 2, day: 1))!,
             startDate: Calendar.current.date(from: DateComponents(year: 2026, month: 2, day: 9))!,
             dueDate: Calendar.current.date(from: DateComponents(year: 2026, month: 2, day: 12))!,
-            files: [], comments: [], number: 1
+            files: [
+                TaskFile(id: "f1", name: "design-spec", format: "pdf",
+                         url: "https://example.com/files/design-spec.pdf"),
+                TaskFile(id: "f2", name: "screen-1", format: "png",
+                         url: "https://picsum.photos/seed/remember1/400/400"),
+                TaskFile(id: "f3", name: "screen-2", format: "png",
+                         url: "https://picsum.photos/seed/remember2/400/400"),
+            ],
+            comments: [
+                TaskComment(
+                    id: "tc1",
+                    user: User(id: "u1", name: "Nurgeldi Rejepow", phone: ""),
+                    text: "Iconlaryň ilkinji wersiýasyny ýükledim. Synlaň.",
+                    date: Calendar.current.date(byAdding: .hour, value: -2, to: Date()) ?? Date()
+                )
+            ],
+            number: 1
         ),
         TaskItem(
             id: "created-2",
@@ -36,6 +53,7 @@ extension TaskItem {
                 TaskAssignee(id: "b3", user: User(id: "u6", name: "Haljanow Haknazar", phone: "+99362000006"), status: .inProgress),
             ],
             assigneeIds: ["current-user", "u4", "u5", "u6"], // ✅ current-user eklendi
+            creatorId: "current-user",
             createdAt: Calendar.current.date(from: DateComponents(year: 2026, month: 2, day: 1))!,
             startDate: Calendar.current.date(from: DateComponents(year: 2026, month: 2, day: 9))!,
             dueDate: Calendar.current.date(from: DateComponents(year: 2026, month: 2, day: 12))!,
@@ -53,6 +71,7 @@ extension TaskItem {
                 TaskAssignee(id: "c2", user: User(id: "u8", name: "Serdar Durdow", phone: "+99362000008"), status: .inProgress),
             ],
             assigneeIds: ["u7", "u8"], // ✅ bu "İş döretmek"te görünür
+            creatorId: "u7",
             createdAt: Calendar.current.date(from: DateComponents(year: 2026, month: 2, day: 5))!,
             startDate: Calendar.current.date(from: DateComponents(year: 2026, month: 2, day: 10))!,
             dueDate: Calendar.current.date(from: DateComponents(year: 2026, month: 2, day: 20))!,
@@ -69,6 +88,7 @@ extension TaskItem {
             departmentId: "sahsy",
             assignees: [],
             assigneeIds: ["current-user"],
+            creatorId: "current-user",
             createdAt: Date(),
             startDate: Calendar.current.date(from: DateComponents(year: 2026, month: 2, day: 9))!,
             dueDate: Calendar.current.date(from: DateComponents(year: 2026, month: 2, day: 12))!,
@@ -83,6 +103,7 @@ extension TaskItem {
             departmentId: "sahsy",
             assignees: [],
             assigneeIds: ["current-user"],
+            creatorId: "current-user",
             createdAt: Date(),
             startDate: Calendar.current.date(from: DateComponents(year: 2026, month: 2, day: 9))!,
             dueDate: Calendar.current.date(from: DateComponents(year: 2026, month: 2, day: 12))!,
@@ -97,6 +118,7 @@ extension TaskItem {
             departmentId: "sahsy",
             assignees: [],
             assigneeIds: ["current-user"],
+            creatorId: "current-user",
             createdAt: Date(),
             startDate: Calendar.current.date(from: DateComponents(year: 2026, month: 2, day: 9))!,
             dueDate: Calendar.current.date(from: DateComponents(year: 2026, month: 2, day: 12))!,

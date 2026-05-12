@@ -9,11 +9,12 @@
 import Foundation
 
 // Task doredilyan wagty doldurulmaly forma
-struct CreateTask {
+struct CreateTask: Codable {
     var name: String = ""
     var mazmuny: String = ""
     var department: Department? = nil
     var assigneeIDs: [String] = []
+    var creatorId: String = CurrentUserProvider.user.id
     var endDate: Date = Date()
     var endTime: Date = Date()
     var files: [TaskFile] = []

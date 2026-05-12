@@ -1,24 +1,27 @@
 // UI/Components/StatusBadge.swift
 import SwiftUI
 
-/// Task yagday badge i — kici tegelek
 struct StatusBadge: View {
     let status: TaskStatus
+    @EnvironmentObject private var container: DIContainer
 
     var body: some View {
-        Text(status.displayName)
-            .font(.system(size: 11, weight: .semibold))
+        Text(status.displayName(language: container.appSettings.selectedLanguage))
+            .font(AppFonts.aestetico(size: 11, weight: .semibold))
             .foregroundColor(status.color)
             .padding(.horizontal, 10)
             .padding(.vertical, 4)
             .background(
                 Capsule()
-                    .fill(status.backgroundColor)
+                    .fill(status.backgroundColor.opacity(0.15))
+            )
+            .overlay(
+                Capsule()
+                    .stroke(status.backgroundColor.opacity(0.3), lineWidth: 1)
             )
     }
 }
 
-/// Yagday nokady — kici tegelek
 struct StatusDot: View {
     let status: TaskStatus
 

@@ -1,4 +1,4 @@
-// UI/Features/Users/UsersViewModel.swift
+// Kullanıcılar sekmesi: liste, arama, silme onayı ve görev teklifleri.
 import Foundation
 import Combine
 
@@ -6,7 +6,7 @@ import Combine
 final class UsersViewModel: ObservableObject {
 
     @Published var showDepartmentSheet: Bool = false
-    @Published var selectedDepartment: Department   
+    @Published var selectedDepartment: Department
     @Published var users: [User] = []
     @Published var searchQuery: String = ""
     @Published var isSearching: Bool = false
@@ -16,27 +16,38 @@ final class UsersViewModel: ObservableObject {
     @Published var showUserDetail: Bool = false
     @Published var departments: [Department] = MockDepartments.all
 
+    /// Silme işlemi için onay beklenen kullanıcı. `.alert(item:)` ile bağlanır.
+    @Published var pendingDeletionUser: User? = nil
+
     private let userRepository: UserRepository
+    private let taskRepository: TaskRepository
     private let getUsersUC: GetUsersUseCase
     private let searchUsersUC: SearchUsersUseCase
     private let offerRepository: TaskOfferRepository
 
     let currentUser = CurrentUserProvider.user
 
+    /// `taskRepository` varsayılan olarak nil verilir ve gövde içinde `DIContainer` üzerinden çözülür.
+    /// Varsayılan argümanda doğrudan `DIContainer.shared` kullanılamaz: argüman ifadesi izole bağlamda çalışır,
+    /// kapsayıcı ise `@MainActor` ile bağlıdır.
     init(
-        userRepository: UserRepository = MockUserRepository(),
-        offerRepository: TaskOfferRepository = MockTaskOfferRepository.shared
+        userRepository: UserRepository? = nil,
+        offerRepository: TaskOfferRepository? = nil,
+        taskRepository: TaskRepository? = nil
     ) {
+        let userRepository = userRepository ?? MockUserRepository()
+        let offerRepository = offerRepository ?? MockTaskOfferRepository.shared
         self.userRepository   = userRepository
         self.offerRepository  = offerRepository
+        self.taskRepository   = taskRepository ?? DIContainer.shared.taskRepository
         self.getUsersUC       = GetUsersUseCase(repository: userRepository)
         self.searchUsersUC    = SearchUsersUseCase(repository: userRepository)
-        self.selectedDepartment = MockDepartments.all[0]  
+        self.selectedDepartment = MockDepartments.all[0]
         Task { await loadUsers() }
         Task { await loadIncomingOffers() }
     }
 
-    // MARK: - Computed
+    // MARK: - Hesaplanmış özellikler
     var filteredUsers: [User] {
         let base: [User]
         if selectedDepartment.id == "all" {
@@ -53,7 +64,7 @@ final class UsersViewModel: ObservableObject {
         }
     }
 
-    // MARK: - Actions
+    // MARK: - İşlemler
     func loadUsers() async {
         users = await getUsersUC.execute()
     }
@@ -70,6 +81,25 @@ final class UsersViewModel: ObservableObject {
         }
     }
 
+    // MARK: - Silme onayı akışı
+
+    /// Kullanıcıyı silmek için onay aşamasına alır; görünüm `pendingDeletionUser`'ı izlemelidir.
+    func requestDeleteUser(_ user: User) {
+        pendingDeletionUser = user
+    }
+
+    /// Kullanıcı silmeyi onayladığında çağrılır — gerçek silme işlemini yapar.
+    func confirmDeletePendingUser() {
+        guard let user = pendingDeletionUser else { return }
+        pendingDeletionUser = nil
+        deleteUser(id: user.id)
+    }
+
+    /// Silmeden vazgeçildiğinde çağrılır — bekleyen silme isteğini iptal eder.
+    func cancelDeletePendingUser() {
+        pendingDeletionUser = nil
+    }
+
     func taskStats(for userId: String) -> UserTaskStats? {
         userRepository.taskStats(for: userId)
     }
@@ -82,6 +112,36 @@ final class UsersViewModel: ObservableObject {
     func acceptOffer(_ offer: TaskOffer) {
         Task {
             await offerRepository.acceptOffer(id: offer.id)
+
+            // Materialise the accepted offer as a real task in the user's
+            // task list so it shows up under "Ýumuşlar". Anything not present
+            // on `TaskOffer` (department, due date, etc.) is filled with
+            // sensible defaults; the backend will eventually persist a richer
+            // offer model.
+            let now = Date()
+            let dept = offer.fromUser.departmentIds.first
+                .flatMap { id in departments.first(where: { $0.id == id }) }
+            let task = TaskItem(
+                id: "from-offer-\(offer.id)",
+                title: offer.title.isEmpty ? "Çakylyk" : offer.title,
+                description: offer.description,
+                status: .waiting,
+                department: dept?.name ?? "—",
+                departmentId: dept?.id ?? "sahsy",
+                assignees: [
+                    TaskAssignee(id: UUID().uuidString, user: currentUser, status: .waiting)
+                ],
+                assigneeIds: [currentUser.id],
+                creatorId: offer.fromUser.id,
+                createdAt: now,
+                startDate: now,
+                dueDate: Calendar.current.date(byAdding: .day, value: 3, to: now) ?? now,
+                files: [],
+                comments: [],
+                number: 0
+            )
+            try? await taskRepository.addTask(task)
+
             await loadIncomingOffers()
         }
     }

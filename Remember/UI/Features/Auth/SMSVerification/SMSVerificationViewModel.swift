@@ -65,7 +65,7 @@ final class SMSVerificationViewModel: ObservableObject {
                 )
                 isLoading = false
                 
-                router.navigateToSignIn(phoneNumber: token)
+                router.navigateToAccountSetup(token: token)
             } catch {
                 isLoading = false
                 errorMessage = error.localizedDescription

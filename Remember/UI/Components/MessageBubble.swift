@@ -12,10 +12,10 @@ struct MessageBubble: View {
             if !isFromMe {
                 ZStack {
                     Circle()
-                        .fill(AppColors.primary.opacity(0.2))
+                        .fill(AppColors.primaryLight)
                         .frame(width: 32, height: 32)
                     Text(message.sender.name.prefix(1))
-                        .font(.system(size: 13, weight: .bold))
+                        .font(AppFonts.aestetico(size: 13, weight: .bold))
                         .foregroundColor(AppColors.primary)
                 }
             }
@@ -23,12 +23,22 @@ struct MessageBubble: View {
             VStack(alignment: isFromMe ? .trailing : .leading, spacing: 4) {
                 Text(message.text)
                     .font(AppFonts.body)
-                    .foregroundColor(.white)
+                    .foregroundColor(isFromMe ? AppColors.textInverse : AppColors.textPrimary)
                     .padding(.horizontal, 14)
                     .padding(.vertical, 10)
                     .background(
                         RoundedRectangle(cornerRadius: 16)
-                            .fill(isFromMe ? AppColors.primary.opacity(0.3) : AppColors.surfaceLight)
+                            .fill(
+                                isFromMe
+                                ? AppColors.primary
+                                : AppColors.surface
+                            )
+                    )
+                    .overlay(
+                        isFromMe
+                            ? nil
+                            : RoundedRectangle(cornerRadius: 16)
+                                .stroke(AppColors.divider, lineWidth: 1)
                     )
 
                 HStack(spacing: 4) {
@@ -37,7 +47,7 @@ struct MessageBubble: View {
                         .foregroundColor(AppColors.textHint)
                     if isFromMe {
                         Image(systemName: message.isRead ? "checkmark.circle.fill" : "checkmark")
-                            .font(.system(size: 10))
+                            .font(AppFonts.aestetico(size: 10))
                             .foregroundColor(message.isRead ? AppColors.primary : AppColors.textHint)
                     }
                 }

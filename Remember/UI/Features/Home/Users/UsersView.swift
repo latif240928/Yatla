@@ -3,10 +3,13 @@ import SwiftUI
 
 struct UsersView: View {
     @StateObject private var viewModel = UsersViewModel()
+    @EnvironmentObject private var container: DIContainer
     @State private var selectedTab: UsersTab = .users
     @State private var showSearch: Bool = false
     @State private var selectedUser: User? = nil
     @State private var searchText: String = ""
+
+    private var lang: Language { container.appSettings.selectedLanguage }
 
     enum UsersTab {
         case users, invitations
@@ -17,72 +20,69 @@ struct UsersView: View {
             AppColors.background.ignoresSafeArea()
 
             VStack(spacing: 0) {
-                // MARK: - AppBar
                 HStack(spacing: 12) {
-                    // Avatar + Department
                     Button(action: { viewModel.showDepartmentSheet = true }) {
                         HStack(spacing: 8) {
-                            ZStack {
-                                Circle()
-                                    .fill(AppColors.primary)
-                                    .frame(width: 36, height: 36)
-                                Text("A")
-                                    .font(.system(size: 16, weight: .bold))
-                                    .foregroundColor(.white)
-                            }
                             Text(viewModel.selectedDepartment.name)
-                                .font(AppFonts.headline)
-                                .foregroundColor(.white)
+                                .font(AppFonts.deptitle)
+                                .foregroundColor(AppColors.textPrimary)
                             Image(systemName: "chevron.down")
-                                .font(.system(size: 12, weight: .semibold))
+                                .font(AppFonts.aestetico(size: 17, weight: .semibold))
                                 .foregroundColor(AppColors.textSecondary)
                         }
                     }
 
                     Spacer()
 
-                    // Search buttony
                     Button(action: { withAnimation { showSearch.toggle() } }) {
-                        Image(systemName: "magnifyingglass")
-                            .font(.system(size: 18))
-                            .foregroundColor(.white)
+                        Image(systemName: showSearch ? "xmark" : "magnifyingglass")
+                            .font(AppFonts.aestetico(size: 18))
+                            .foregroundColor(AppColors.textPrimary)
                             .frame(width: 36, height: 36)
                             .background(AppColors.surface)
-                            .cornerRadius(10)
+                            .cornerRadius(16)
+                            .shadow(color: AppColors.shadowColor(opacity: 0.04), radius: 4, y: 2)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 16)
+                                    .stroke(AppColors.divider, lineWidth: 1)
+                            )
                     }
                 }
                 .padding(.horizontal, 20)
                 .padding(.top, 16)
                 .padding(.bottom, 12)
 
-                // search field
                 if showSearch {
-                    TextField("Gözleg...", text: $searchText)
+                    TextField(L10n.string(.search, language: lang), text: $searchText)
                         .font(AppFonts.body)
-                        .foregroundColor(.white)
+                        .foregroundColor(AppColors.textPrimary)
                         .padding(12)
                         .background(AppColors.surface)
-                        .cornerRadius(10)
-                        .overlay(RoundedRectangle(cornerRadius: 10).stroke(AppColors.divider, lineWidth: 1))
+                        .cornerRadius(16)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 16)
+                                .stroke(AppColors.borderFocused, lineWidth: 2)
+                        )
                         .padding(.horizontal, 20)
                         .padding(.bottom, 12)
                         .autocorrectionDisabled()
                         .transition(.move(edge: .top).combined(with: .opacity))
                 }
 
-
-                // MARK: - Tab saylayjy
                 HStack(spacing: 0) {
-                    tabButton(title: "Ulanyjylar", tab: .users)
-                    tabButton(title: "Meni çagyranlar", tab: .invitations)
+                    tabButton(title: L10n.string(.usersTabUsers, language: lang), tab: .users)
+                    tabButton(title: L10n.string(.usersTabInvitations, language: lang), tab: .invitations)
                 }
                 .padding(4)
                 .background(AppColors.surface)
-                .cornerRadius(10)
+                .cornerRadius(16)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16)
+                        .stroke(AppColors.divider, lineWidth: 1)
+                )
                 .padding(.horizontal, 20)
                 .padding(.bottom, 12)
 
-               
                 ScrollView {
                     LazyVStack(spacing: 12) {
                         switch selectedTab {
@@ -97,48 +97,21 @@ struct UsersView: View {
                 }
             }
 
-            // MARK: '+' buttony
-            VStack {
-                Spacer()
-                HStack {
-                    Spacer()
-                    Button(action: { viewModel.showAddUserSheet = true }) {
-                        Image(systemName: "plus")
-                            .font(.system(size: 24, weight: .semibold))
-                            .foregroundColor(.white)
-                            .frame(width: 56, height: 56)
-                            .background(
-                                Circle().fill(
-                                    LinearGradient(
-                                        colors: [AppColors.primary, AppColors.primaryDark],
-                                        startPoint: .topLeading,
-                                        endPoint: .bottomTrailing
-                                    )
-                                )
-                            )
-                            .shadow(color: AppColors.primary.opacity(0.4), radius: 12, y: 4)
-                    }
-                    .padding(.trailing, 20)
-                    .padding(.bottom, 8)
-                }
+            FloatingActionButton(systemImage: "plus") {
+                viewModel.showAddUserSheet = true
             }
         }
-        // AddUser sheet
-        .overlay(
-            Group {
-                if viewModel.showAddUserSheet {
-                    AddUserSheet(
-                        isPresented: $viewModel.showAddUserSheet,
-                        departments: viewModel.departments,
-                        onInvite: { name, phone, dept in
-                            viewModel.inviteUser(name: name, phone: phone, department: dept)
-                        }
-                    )
-                    .transition(.opacity)
+        .sheet(isPresented: $viewModel.showAddUserSheet) {
+            AddUserSheet(
+                isPresented: $viewModel.showAddUserSheet,
+                departments: viewModel.departments,
+                onInvite: { name, phone, dept in
+                    viewModel.inviteUser(name: name, phone: phone, department: dept)
                 }
-            }
-        )
-        // UserDetail sheet
+            )
+            .presentationDetents([.medium, .large])
+            .presentationDragIndicator(.hidden)
+        }
         .sheet(isPresented: $viewModel.showDepartmentSheet) {
             DepartmentSheet(
                 selectedDepartment: Binding(
@@ -150,26 +123,43 @@ struct UsersView: View {
                 onCreateDepartment: { _ in }
             )
             .presentationDetents([.medium])
-            .preferredColorScheme(.dark)
         }
-        
         .sheet(item: $selectedUser) { user in
-                    UserDetailView(user: user)
-                        .presentationDetents([.large])
-                        .preferredColorScheme(.dark)
+            UserDetailView(user: user)
+                .presentationDetents([.large])
+        }
+        // Silme onayı – `UserCard` üzerindeki çöp kutusu simgesi yalnızca bir
+        // istek hazırlar; asıl silme "Howa" sonrasında gerçekleşir.
+        .alert(
+            L10n.string(.usersDeleteConfirmTitle, language: lang),
+            isPresented: Binding(
+                get: { viewModel.pendingDeletionUser != nil },
+                set: { newValue in
+                    if !newValue { viewModel.cancelDeletePendingUser() }
                 }
+            ),
+            presenting: viewModel.pendingDeletionUser
+        ) { user in
+            Button(L10n.string(.actionYes, language: lang), role: .destructive) {
+                viewModel.confirmDeletePendingUser()
+            }
+            Button(L10n.string(.actionNo, language: lang), role: .cancel) {
+                viewModel.cancelDeletePendingUser()
+            }
+        } message: { user in
+            Text(L10n.string(.usersDeleteConfirmMessage, language: lang))
+        }
     }
 
-    // MARK: - Users
     @ViewBuilder
     private var usersContent: some View {
         if viewModel.filteredUsers.isEmpty {
             VStack(spacing: 12) {
                 Spacer().frame(height: 40)
                 Image(systemName: "person.2")
-                    .font(.system(size: 48))
+                    .font(AppFonts.aestetico(size: 48))
                     .foregroundColor(AppColors.textHint)
-                Text("Ulanyjy ýok")
+                Text(L10n.string(.usersNoUsers, language: lang))
                     .font(AppFonts.body)
                     .foregroundColor(AppColors.textSecondary)
             }
@@ -179,23 +169,23 @@ struct UsersView: View {
                 UserCard(
                     user: user,
                     stats: viewModel.taskStats(for: user.id),
-                    onDelete: { viewModel.deleteUser(id: user.id) },
+                    departments: viewModel.departments,
+                    onDelete: { viewModel.requestDeleteUser(user) },
                     onTap: { selectedUser = user }
                 )
             }
         }
     }
 
-    // MARK:  Invitations 
     @ViewBuilder
     private var invitationsContent: some View {
         if viewModel.incomingOffers.isEmpty {
             VStack(spacing: 12) {
                 Spacer().frame(height: 40)
                 Image(systemName: "envelope")
-                    .font(.system(size: 48))
+                    .font(AppFonts.aestetico(size: 48))
                     .foregroundColor(AppColors.textHint)
-                Text("Çakylyk ýok")
+                Text(L10n.string(.usersNoInvitations, language: lang))
                     .font(AppFonts.body)
                     .foregroundColor(AppColors.textSecondary)
             }
@@ -204,6 +194,7 @@ struct UsersView: View {
             ForEach(viewModel.incomingOffers) { offer in
                 InvitationCard(
                     offer: offer,
+                    departments: viewModel.departments,
                     onAccept: { viewModel.acceptOffer(offer) },
                     onReject: { viewModel.rejectOffer(offer) }
                 )
@@ -211,24 +202,21 @@ struct UsersView: View {
         }
     }
 
-
     private func tabButton(title: String, tab: UsersTab) -> some View {
         Button(action: {
             withAnimation(.easeInOut(duration: 0.2)) { selectedTab = tab }
         }) {
             Text(title)
                 .font(AppFonts.subheadline)
-                .foregroundColor(selectedTab == tab ? .white : AppColors.textSecondary)
+                .foregroundColor(selectedTab == tab ? AppColors.textPrimary : AppColors.textSecondary)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 10)
                 .background(selectedTab == tab ? AppColors.surfaceLight : Color.clear)
-                .cornerRadius(8)
+                .cornerRadius(16)
         }
     }
 }
 
 #Preview {
     UsersView()
-        .preferredColorScheme(.dark)
 }
-

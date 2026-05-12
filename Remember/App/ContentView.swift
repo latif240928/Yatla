@@ -1,17 +1,9 @@
+// Xcode şablonundan kalan `ContentView`; gerçek giriş noktası `RootView` (RememberApp içinde WindowGroup).
+// Hedeften çıkarılırsa bu dosya da silinebilir.
 import SwiftUI
 
 struct ContentView: View {
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
-        }
-        .padding()
+        EmptyView()
     }
-}
-
-#Preview {
-    ContentView()
 }
