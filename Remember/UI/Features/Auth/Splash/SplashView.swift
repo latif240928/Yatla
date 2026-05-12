@@ -10,13 +10,14 @@ struct SplashView: View {
         ZStack {
             AppColors.authBackgroundGradient.ignoresSafeArea()
 
-            Image("logo")
+            Image("appLogo")
                 .resizable()
                 .scaledToFit()
-                .frame(width: 180)
-                .scaleEffect(viewModel.isAnimating ? 1.5 : 0.5)
-                .opacity(viewModel.isAnimating ? 1.0 : 0.5)
-                .shadow(color: AppColors.primary.opacity(0.25), radius: 30, y: 12)
+                .frame(width: 160)
+                .clipShape(RoundedRectangle(cornerRadius: 36))
+                .scaleEffect(viewModel.isAnimating ? 1.2 : 0.5)
+                .opacity(viewModel.isAnimating ? 1.0 : 0.3)
+                .shadow(color: AppColors.primary.opacity(0.3), radius: 40, y: 16)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .onAppear {
