@@ -5,10 +5,8 @@ import Foundation
 
 /// Hangi backend'e bağlanılacağı. `APIEnvironment.current` ile derleme veya QA ortamında seçilir.
 ///
-/// Mock dışındaki tüm ortamların taban URL'si `/api/v1` ile biter; backend (FastAPI) uç noktaları bu önek altında yayınlar
-/// (`openapi.json` içinde yollar `/api/v1/...` ile başlar).
+/// Tüm ortamların taban URL'si `/api/v1` ile biter; backend (FastAPI) uç noktaları bu önek altında yayınlar.
 enum APIEnvironment {
-    case mock
     /// Mac veya yerel ağ üzerinden düz HTTP. Varsayılan uvicorn adresi.
     /// Farklı makine için Info.plist / build settings içinde `API_BASE_URL` kullanın.
     case local
@@ -19,18 +17,16 @@ enum APIEnvironment {
     /// Uygulama açılışında bir kez okunur. Info.plist'teki `API_ENV` ile geçersiz kılınır
     /// (ör. "local", "staging"); Xcode'da `INFOPLIST_KEY_API_ENV` ile enjekte edilebilir.
     static let current: APIEnvironment = {
-        let raw = (Bundle.main.object(forInfoDictionaryKey: "API_ENV") as? String)?.lowercased() ?? "mock"
+        let raw = (Bundle.main.object(forInfoDictionaryKey: "API_ENV") as? String)?.lowercased() ?? "local"
         switch raw {
         case "production":          return .production
         case "staging":             return .staging
         case "development", "dev":  return .development
-        case "local", "localhost":  return .local
-        default:                    return .mock
+        default:                    return .local
         }
     }()
 
     var baseURL: URL {
-        // Kaynak kodu değiştirmeden geçici URL (LAN IP, tünel vb.) için Info.plist üzerinden ezme.
         if let override = (Bundle.main.object(forInfoDictionaryKey: "API_BASE_URL") as? String)?
             .trimmingCharacters(in: .whitespacesAndNewlines),
            !override.isEmpty,
@@ -38,7 +34,6 @@ enum APIEnvironment {
             return url
         }
         switch self {
-        case .mock:        return URL(string: "https://mock.invalid")!
         case .local:       return URL(string: "http://localhost:8000/api/v1")!
         case .development: return URL(string: "https://dev-api.remember.com/api/v1")!
         case .staging:     return URL(string: "https://staging-api.remember.com/api/v1")!
@@ -46,19 +41,14 @@ enum APIEnvironment {
         }
     }
 
-    /// Hata ayıklama rozetinde gösterilen kısa etiket.
     var displayName: String {
         switch self {
-        case .mock:        return "MOCK"
         case .local:       return "LOCAL"
         case .development: return "DEV"
         case .staging:     return "STAGING"
         case .production:  return "PROD"
         }
     }
-
-    /// Mock modda gerçek ağ çağrısı yapılmaz.
-    var isMock: Bool { self == .mock }
 }
 
 // MARK: - Boş HTTP yanıtı
@@ -254,17 +244,6 @@ final class NetworkService {
             }
             return configured
         }()
-
-        guard env != .mock else {
-            return HealthSnapshot(
-                baseURL: configured,
-                environment: env,
-                reachable: false,
-                statusCode: nil,
-                latencyMs: nil,
-                errorMessage: "API_ENV=mock — no network call performed"
-            )
-        }
 
         var probe = URLRequest(url: healthURL)
         probe.httpMethod = "GET"

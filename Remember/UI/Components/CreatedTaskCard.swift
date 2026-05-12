@@ -105,11 +105,17 @@ struct CreatedTaskCard: View {
 }
 
 #Preview {
+    let previewTask = TaskItem(
+        id: "1", title: "Önizleme görevi", description: "Açıklama",
+        status: .inProgress, department: "UI", departmentId: "ui-1",
+        assignees: [], assigneeIds: [],
+        creatorId: "preview", createdAt: Date(), startDate: Date(),
+        dueDate: Date().addingTimeInterval(86400 * 3),
+        files: [], comments: [], number: 1
+    )
     ScrollView {
         VStack(spacing: 16) {
-            ForEach(TaskItem.createdMockList) { task in
-                CreatedTaskCard(task: task)
-            }
+            CreatedTaskCard(task: previewTask)
         }
         .padding(16)
     }

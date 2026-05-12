@@ -5,7 +5,7 @@
 //   ChatMessageResponse       { id, sender_id, text, sent_at, is_read }
 //   GroupChatMessageResponse  ChatMessageResponse ile aynı yapı
 //
-// Eski mock yapıdan fark: liste uç noktaları artık tam geçmiş veya katılımcı
+// Liste uç noktaları artık tam geçmiş veya katılımcı
 // kullanıcı nesnesi göndermez — yalnızca kimlikler ve son mesaj özeti. Depoların
 // yapması gerekenler:
 //

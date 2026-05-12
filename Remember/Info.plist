@@ -16,7 +16,7 @@
 		the source. Leave empty to fall back to `API_ENV.baseURL`.
 	-->
 	<key>API_BASE_URL</key>
-	<string></string>
+	<string>http://BURAYA_IP_YAZIN:8000/api/v1</string>
 
 	<!-- ====================================================== -->
 	<!--   App Transport Security                                 -->
@@ -28,16 +28,8 @@
 	<dict>
 		<key>NSAllowsLocalNetworking</key>
 		<true/>
-		<key>NSExceptionDomains</key>
-		<dict>
-			<key>localhost</key>
-			<dict>
-				<key>NSExceptionAllowsInsecureHTTPLoads</key>
-				<true/>
-				<key>NSIncludesSubdomains</key>
-				<true/>
-			</dict>
-		</dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<true/>
 	</dict>
 
 	<!-- ====================================================== -->
@@ -47,6 +39,27 @@
 	<!-- ====================================================== -->
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
+
+	<key>CFBundleIdentifier</key>
+	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+
+	<key>CFBundleExecutable</key>
+	<string>$(EXECUTABLE_NAME)</string>
+
+	<key>CFBundleName</key>
+	<string>$(PRODUCT_NAME)</string>
+
+	<key>CFBundlePackageType</key>
+	<string>$(PRODUCT_BUNDLE_PACKAGE_TYPE)</string>
+
+	<key>CFBundleShortVersionString</key>
+	<string>1.0</string>
+
+	<key>CFBundleVersion</key>
+	<string>1</string>
+
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
 
 	<key>UILaunchScreen</key>
 	<dict/>

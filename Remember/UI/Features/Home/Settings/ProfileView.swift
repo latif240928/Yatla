@@ -22,11 +22,10 @@ struct ProfileView: View {
 
     private var lang: Language { vm.settings.selectedLanguage }
 
-    /// `Profile` üzerinde saklanan kimliklere uyan departmanlar. Tam kataloğu
-    /// DI kapsayıcısından alırız; böylece depo yalnızca kimlikleri bilse bile
-    /// adlar yerelleştirilmiş kalır.
+    @EnvironmentObject private var container: DIContainer
+    @State private var allDepartments: [Department] = []
+
     private var departmentNames: [String] {
-        let allDepartments = MockDepartments.all
         return vm.profile.departmentIds.compactMap { id in
             allDepartments.first(where: { $0.id == id })?.name
         }
@@ -61,6 +60,11 @@ struct ProfileView: View {
                let url = URL(string: urlString),
                let data = try? Data(contentsOf: url) {
                 avatarData = data
+            }
+        }
+        .task {
+            if let depts = try? await container.departmentRepository.getDepartments() {
+                allDepartments = depts
             }
         }
         .onChange(of: pickedAvatar) { _, newItem in

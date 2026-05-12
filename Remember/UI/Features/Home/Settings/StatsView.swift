@@ -49,7 +49,7 @@ struct StatsView: View {
     private var todayRingCard: some View {
         let stats = vm.stats
         let total = stats.dailyTasks[Calendar.current.startOfDay(for: Date())] ?? 0
-        // Mock tahmini: bugünkü tamamlamaların 8 görevlik hedefe oranı.
+        // Bugünkü tamamlamaların 8 görevlik hedefe oranı.
         let ratio = min(1.0, Double(total) / 8.0)
 
         return HStack(spacing: 18) {

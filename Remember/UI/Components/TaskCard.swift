@@ -217,69 +217,19 @@ struct TaskCardExpanded: View {
     }
 }
 
-extension TaskItem {
-    static let mockList: [TaskItem] = [
-        TaskItem(
-            id: "1",
-            title: "Iconlary ýygnamaly",
-            description: "Lorem Ipsum is simply dummy text of the printing and typesetting industry.",
-            status: .waiting,
-            department: "UI Design",
-            departmentId: "ui-1",
-            assignees: [
-                .init(id: "1", user: User.mockUser1, status: .waiting)
-            ],
-            assigneeIds: ["mock-user-1"],
-            creatorId: CurrentUserProvider.user.id,
-            createdAt: Date(),
-            startDate: Date(),
-            dueDate: Date().addingTimeInterval(86400 * 3),
-            files: [],
-            comments: [],
-            number: 1
-        ),
-        TaskItem(
-            id: "2",
-            title: "App Design System",
-            description: "Design system components need to be updated according to new brand guidelines.",
-            status: .inProgress,
-            department: "UI Design",
-            departmentId: "ui-1",
-            assignees: [
-                .init(id: "2", user: User.mockUser1, status: .inProgress)
-            ],
-            assigneeIds: ["mock-user-1"],
-            creatorId: CurrentUserProvider.user.id,
-            createdAt: Date(),
-            startDate: Date(),
-            dueDate: Date().addingTimeInterval(86400 * 5),
-            files: [],
-            comments: [],
-            number: 2
-        )
-    ]
-}
-
 #Preview {
+    let previewTask = TaskItem(
+        id: "1", title: "Önizleme görevi", description: "Açıklama",
+        status: .waiting, department: "UI", departmentId: "ui-1",
+        assignees: [], assigneeIds: [],
+        creatorId: "preview", createdAt: Date(), startDate: Date(),
+        dueDate: Date().addingTimeInterval(86400 * 3),
+        files: [], comments: [], number: 1
+    )
     ScrollView {
         VStack(spacing: 16) {
-            Text("Berlen işler kartı")
-                .font(AppFonts.caption1)
-                .foregroundColor(AppColors.textSecondary)
-                .frame(maxWidth: .infinity, alignment: .leading)
-
-            TaskCard(task: TaskItem.mockList[0])
-            TaskCard(task: TaskItem.mockList[1])
-
-            Divider().background(AppColors.divider).padding(.vertical, 8)
-
-            Text("İş döretmek kartı")
-                .font(AppFonts.caption1)
-                .foregroundColor(AppColors.textSecondary)
-                .frame(maxWidth: .infinity, alignment: .leading)
-
-            TaskCardExpanded(task: TaskItem.mockList[0])
-            TaskCardExpanded(task: TaskItem.mockList[1])
+            TaskCard(task: previewTask)
+            TaskCardExpanded(task: previewTask)
         }
         .padding(16)
     }

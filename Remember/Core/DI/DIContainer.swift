@@ -36,45 +36,27 @@ final class DIContainer: ObservableObject {
     }
 
     // MARK: - Depolar
-    //
-    // Seçim: `APIEnvironment.current.isMock` ise bellek içi sahte veri,
-    // değilse gerçek API sınıfları kullanılır.
-    //
-    // Böylece backend hazır olmadan arayüz uçtan uca test edilebilir.
-    // Info.plist veya derleme ayarındaki `API_ENV` değişince uygulama gerçek sunucuya bağlanır.
-    private let useMocks = APIEnvironment.current.isMock
 
-    lazy var authRepository: AuthRepository = useMocks
-        ? MockAuthRepository()
-        : AuthRepositoryAPI()
+    lazy var authRepository: AuthRepository = AuthRepositoryAPI()
 
-    lazy var departmentRepository: DepartmentRepository = useMocks
-        ? MockDepartmentRepository()
-        : DepartmentRepositoryAPI()
+    lazy var departmentRepository: DepartmentRepository = DepartmentRepositoryAPI()
 
-    lazy var taskRepository: TaskRepository = useMocks
-        ? TaskRepositoryImpl(userRepository: userRepository)
-        : TaskRepositoryAPI()
+    lazy var taskRepository: TaskRepository = TaskRepositoryAPI()
 
-    /// Protokol arkasında tutulan somut API deposu; `ChatRepositoryAPI` gibi yerler
-    /// `UserRepository` protokolünde olmayan ek async metotlara (`user(byId:)` vb.) buradan erişir.
     lazy var userRepositoryAPI: UserRepositoryAPI = UserRepositoryAPI()
 
-    lazy var userRepository: UserRepository = useMocks
-        ? MockUserRepository()
-        : userRepositoryAPI
+    lazy var userRepository: UserRepository = userRepositoryAPI
 
-    lazy var chatRepository: ChatRepository = useMocks
-        ? MockChatRepository()
-        : ChatRepositoryAPI(
-            userRepository: userRepositoryAPI,
-            departmentRepository: departmentRepository
-        )
+    lazy var chatRepository: ChatRepository = ChatRepositoryAPI(
+        userRepository: userRepositoryAPI,
+        departmentRepository: departmentRepository
+    )
 
-    lazy var taskOfferRepository: TaskOfferRepository = MockTaskOfferRepository.shared
+    lazy var taskOfferRepository: TaskOfferRepository = TaskOfferRepositoryAPI()
 
-    // Bildirim deposu her zaman API uygulamasını kullanır. Mock ortamda istek çoğu zaman başarısız olur;
-    // çevrimdışı bildirim deneyimi gerekirse ana hedefe `MockNotificationRepository` eklenebilir.
+    lazy var settingsRepository: SettingsRepository = LocalSettingsRepository()
+
+    // Bildirim deposu her zaman API uygulamasını kullanır.
     lazy var notificationRepository: NotificationRepository = APINotificationRepository()
     
     // MARK: - Servisler
@@ -86,7 +68,7 @@ final class DIContainer: ObservableObject {
     lazy var verifySMSUseCase       = VerifySMSUseCase(repository: authRepository)
     lazy var registerUseCase        = RegisterUseCase(repository: authRepository)
     lazy var loginUseCase           = LoginUseCase(repository: authRepository)
-    lazy var signInUseCase: SignInUseCase = MockSignInUseCase()
+    lazy var signInUseCase: SignInUseCase = DefaultSignInUseCase(repository: authRepository)
     lazy var checkAuthStatusUseCase = CheckAuthStatusUseCase(authRepository: authRepository)
 
     // MARK: - Departman use case'leri

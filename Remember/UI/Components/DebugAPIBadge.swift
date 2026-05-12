@@ -1,6 +1,6 @@
 // DEBUG derlemelerinde ekranın üstünde yüzen küçük rozet: geliştiriciye şunları gösterir:
 //
-//   • Hangi `API_ENV` aktif (mock / local / dev / staging / prod)
+//   • Hangi `API_ENV` aktif (local / dev / staging / prod)
 //   • Çözümlenmiş taban URL
 //   • Sunucuya erişilebilirlik (yeşil / kırmızı nokta)
 //   • Son `/health` denemesinin gecikmesi

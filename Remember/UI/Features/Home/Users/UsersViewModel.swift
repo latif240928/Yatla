@@ -14,37 +14,52 @@ final class UsersViewModel: ObservableObject {
     @Published var showAddUserSheet: Bool = false
     @Published var selectedUser: User? = nil
     @Published var showUserDetail: Bool = false
-    @Published var departments: [Department] = MockDepartments.all
+    @Published var departments: [Department] = []
 
     /// Silme işlemi için onay beklenen kullanıcı. `.alert(item:)` ile bağlanır.
     @Published var pendingDeletionUser: User? = nil
 
     private let userRepository: UserRepository
     private let taskRepository: TaskRepository
+    private let departmentRepository: DepartmentRepository
     private let getUsersUC: GetUsersUseCase
     private let searchUsersUC: SearchUsersUseCase
     private let offerRepository: TaskOfferRepository
 
     let currentUser = CurrentUserProvider.user
 
-    /// `taskRepository` varsayılan olarak nil verilir ve gövde içinde `DIContainer` üzerinden çözülür.
-    /// Varsayılan argümanda doğrudan `DIContainer.shared` kullanılamaz: argüman ifadesi izole bağlamda çalışır,
-    /// kapsayıcı ise `@MainActor` ile bağlıdır.
     init(
         userRepository: UserRepository? = nil,
         offerRepository: TaskOfferRepository? = nil,
-        taskRepository: TaskRepository? = nil
+        taskRepository: TaskRepository? = nil,
+        departmentRepository: DepartmentRepository? = nil
     ) {
-        let userRepository = userRepository ?? MockUserRepository()
-        let offerRepository = offerRepository ?? MockTaskOfferRepository.shared
+        let container = DIContainer.shared
+        let userRepository = userRepository ?? container.userRepository
+        let offerRepository = offerRepository ?? container.taskOfferRepository
         self.userRepository   = userRepository
         self.offerRepository  = offerRepository
-        self.taskRepository   = taskRepository ?? DIContainer.shared.taskRepository
+        self.taskRepository   = taskRepository ?? container.taskRepository
+        self.departmentRepository = departmentRepository ?? container.departmentRepository
         self.getUsersUC       = GetUsersUseCase(repository: userRepository)
         self.searchUsersUC    = SearchUsersUseCase(repository: userRepository)
-        self.selectedDepartment = MockDepartments.all[0]
-        Task { await loadUsers() }
-        Task { await loadIncomingOffers() }
+        self.selectedDepartment = Department(id: "all", name: "Ähli bölümler")
+        Task {
+            await loadDepartments()
+            await loadUsers()
+            await loadIncomingOffers()
+        }
+    }
+
+    func loadDepartments() async {
+        do {
+            let fetched = try await departmentRepository.getDepartments()
+            let allOption = Department(id: "all", name: "Ähli bölümler")
+            departments = [allOption] + fetched
+        } catch {
+            let allOption = Department(id: "all", name: "Ähli bölümler")
+            departments = [allOption]
+        }
     }
 
     // MARK: - Hesaplanmış özellikler

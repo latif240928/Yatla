@@ -5,6 +5,7 @@ struct UserDetailView: View {
     let user: User
     @Environment(\.dismiss) private var dismiss
     @State private var selectedTab: UserDetailTab = .berkidilen
+    @State private var allTasks: [TaskItem] = []
 
     enum UserDetailTab: String, CaseIterable {
         case berkidilen = "Berkidilen işleri"
@@ -12,11 +13,11 @@ struct UserDetailView: View {
     }
 
     var assignedTasks: [TaskItem] {
-        TaskItem.createdMockList.filter { $0.assigneeIds.contains(user.id) }
+        allTasks.filter { $0.assigneeIds.contains(user.id) }
     }
 
     var submittedTasks: [TaskItem] {
-        TaskItem.createdMockList.filter {
+        allTasks.filter {
             $0.assigneeIds.contains(user.id) && $0.status == .completed
         }
     }
@@ -107,6 +108,11 @@ struct UserDetailView: View {
             }
         }
         .navigationBarHidden(true)
+        .task {
+            if let tasks = try? await DIContainer.shared.taskRepository.getTasks() {
+                allTasks = tasks
+            }
+        }
     }
 
     private func emptyState(text: String) -> some View {

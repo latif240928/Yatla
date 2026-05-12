@@ -75,7 +75,7 @@ final class ChatsViewModel: ObservableObject {
 
     /// Bu katılımcı için mevcut bir doğrudan sohbet açar veya yeni bir tane oluşturur.
     /// API yapısında `POST /chats/participant/{id}` üzerinden sunucuya gider
-    /// ve arka uç kanonik sohbet kimliğini üretir; mock modunda
+    /// ve arka uç kanonik sohbet kimliğini üretir;
     /// yalnızca bellek içi depoya başvurur.
     @discardableResult
     func openOrCreateChat(with user: User) -> String {
@@ -98,8 +98,7 @@ final class ChatsViewModel: ObservableObject {
     }
 
     /// Bire bir sohbetin tam mesaj geçmişini arka uçtan yükler
-    /// (liste uç noktası yalnızca son mesaj önizlemesini gönderir). Hem mock
-    /// hem de API yapılarında güvenle çağrılabilir — Mock bellek içi kopyasını döner.
+    /// (liste uç noktası yalnızca son mesaj önizlemesini gönderir).
     func loadMessages(forChatId chatId: String) async {
         let history = await getMessagesUC.execute(chatId: chatId)
         guard !history.isEmpty else { return }
@@ -154,7 +153,7 @@ final class ChatsViewModel: ObservableObject {
     /// Departman genelinde bir grup sohbetine mesaj gönder. `sendMessage(to:)`
     /// ile aynı yapıdadır ancak `groupChats`'e yazar ve depoya karşı
     /// "gönder ve unut" şeklinde çalışır (grup gönderimi henüz protokolde
-    /// yok — mock yapısı için yerel yankı yeterlidir).
+    /// yok — yerel yankı yeterlidir).
     func sendGroupMessage(to groupId: String) async {
         let trimmed = messageText.trimmingCharacters(in: .whitespaces)
         guard !trimmed.isEmpty else { return }

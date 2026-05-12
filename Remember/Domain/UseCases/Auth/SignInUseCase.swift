@@ -9,11 +9,15 @@ protocol SignInUseCase {
     func execute(username: String, password: String) async throws -> String
 }
 
-// Data/UseCases/Auth/MockSignInUseCase.swift — YENİ DOSYA
-final class MockSignInUseCase: SignInUseCase {
+final class DefaultSignInUseCase: SignInUseCase {
+    private let repository: AuthRepository
+
+    init(repository: AuthRepository) {
+        self.repository = repository
+    }
+
     func execute(username: String, password: String) async throws -> String {
-        // Backend gelene kadar mock token döndür
-        try await Task.sleep(nanoseconds: 1_000_000_000)
-        return "mock_token_123"
+        let user = try await repository.login(phone: username, password: password)
+        return user.id
     }
 }

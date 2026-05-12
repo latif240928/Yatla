@@ -19,7 +19,7 @@ final class SettingsViewModel: ObservableObject {
         repo: SettingsRepository? = nil,
         container: DIContainer? = nil
     ) {
-        let repo = repo ?? MockSettingsRepository()
+        let repo = repo ?? DIContainer.shared.settingsRepository
         let container = container ?? DIContainer.shared
         self.repo      = repo
         self.container = container
@@ -61,7 +61,7 @@ final class SettingsViewModel: ObservableObject {
         flashSaved()
     }
 
-    /// Seçilen avatarı yerelde saklar (mock); API hazır olunca yükleme use case'i eklenecek.
+    /// Seçilen avatarı yerelde saklar; API hazır olunca yükleme use case'i eklenecek.
     func updateAvatar(localFileURL: URL) {
         profile.imageURL = localFileURL.absoluteString
         repo.updateProfile(profile)

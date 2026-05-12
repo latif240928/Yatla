@@ -11,8 +11,6 @@ struct User: Identifiable, Equatable, Hashable, Codable, Sendable {
     var isAdmin: Bool = false
     var createdAt: Date?
 
-    static let mockUser1 = User(id: "mock-user-1", name: "Latif Mock", phone: "+993-62445524")
-
     static let empty = User(
         id: "",
         name: "",

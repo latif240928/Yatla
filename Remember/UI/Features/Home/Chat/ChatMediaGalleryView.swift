@@ -19,7 +19,7 @@ struct ChatMediaGalleryView: View {
         var id: String { rawValue }
     }
 
-    /// Mock koleksiyonlar — arka uç bağlandığında bunları `ChatRepository`'ye
+    /// Mesaj metni üzerinden filtreleme — arka uç ek uç noktası sunduğunda `ChatRepository`'ye
     /// yapılan gerçek sorgularla değiştirin.
     private var photoMessages: [ChatMessage] {
         chat.messages.filter { $0.text.lowercased().hasSuffix(".jpg")

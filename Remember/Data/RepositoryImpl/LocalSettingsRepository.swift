@@ -1,7 +1,7 @@
-// Data/RepositoryImpl/MockSettingsRepository.swift
+// UserDefaults tabanlı yerel ayarlar deposu.
 import Foundation
 
-final class MockSettingsRepository: SettingsRepository {
+final class LocalSettingsRepository: SettingsRepository {
 
     private let defaults = UserDefaults.standard
 

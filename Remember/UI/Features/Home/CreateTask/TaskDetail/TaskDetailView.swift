@@ -408,7 +408,7 @@ struct BarlanmalyCard: View {
 
     private var lang: Language { container.appSettings.selectedLanguage }
 
-    /// Görevi oluşturanın görebildiği dosyalar (atananın yükledikleri). Şimdilik mock modelde düz `task.files` listesi kullanılır.
+    /// Görevi oluşturanın görebildiği dosyalar (atananın yükledikleri). Düz `task.files` listesi kullanılır.
     private var visibleFiles: [TaskFile] { task.files }
 
     private var imageFiles: [TaskFile] {
