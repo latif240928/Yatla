@@ -14,7 +14,7 @@ struct CreateTask: Codable {
     var mazmuny: String = ""
     var department: Department? = nil
     var assigneeIDs: [String] = []
-    var creatorId: String = CurrentUserProvider.user.id
+    var creatorId: String = ""
     var endDate: Date = Date()
     var endTime: Date = Date()
     var files: [TaskFile] = []

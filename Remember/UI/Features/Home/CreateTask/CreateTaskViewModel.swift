@@ -5,7 +5,7 @@ import Combine
 @MainActor
 final class CreateTaskViewModel: ObservableObject {
 
-    @Published var createTask: CreateTask = CreateTask()
+    @Published var createTask: CreateTask = CreateTask(creatorId: CurrentUserProvider.user.id)
     @Published var departments: [Department] = []
     @Published var allUsers: [User] = []
     @Published var selectedUsers: [User] = []
